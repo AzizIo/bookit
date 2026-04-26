@@ -1,17 +1,18 @@
 import avatar from '../assets/avatar.png'
 import logo from '../assets/logo.png'
+import Search from './search'
 export default function Header() {
 	return (
 		<>
-			<nav className='bg-[#0f1629] h-screen' >
+			<nav className='bg-[#0f1629]' >
 				<div className="flex justify-between  gap-4 mx-8 py-4 md:px-30">
 
 					<div className="logotip flex flex-row items-center gap-2">
 						<div className="img-logo w-8"><img className='rounded-xl' src={logo} alt="Logo" /></div>
 						<div className="logo text-lg font-semibold text-white">Bookit</div>
 					</div>
-					<div className="search-section hidden	md:block">
-						<input type="text" placeholder='Search...' className='rounded-xl px-4 py-2 border-1  border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] max-w-md w-120' />
+					<div className="hidden md:block">
+						<Search />
 					</div>
 					<div className="accoutn  flex flex-row items-center gap-4">
 						<div className="acc-name text-zinc-400" >Azizbek</div>
