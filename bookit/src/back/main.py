@@ -60,6 +60,11 @@ def get_listings(city: str = None, category: str = None):
         q = q.filter(Listing.category == category)
     return q.all()
 
+@app.get("/listings/three", response_model=list[ListingOut])
+def get_three_listings():
+    db: Session = SessionLocal()
+    return db.query(Listing).limit(3).all()
+
 @app.post("/listings/", response_model=ListingOut, status_code=201)
 def create_listing(data: ListingCreate):
     db: Session = SessionLocal()
