@@ -3,6 +3,7 @@ import API from '../API/api'
 import checkmark from '../assets/checkmark.png'
 import lupa from '../assets/lupa.png'
 import time from '../assets/time.png'
+import Bug from '../components/bug'
 export default function MainPage() {
 	interface Listing {
 		id: number
@@ -202,6 +203,10 @@ export default function MainPage() {
 						</button>
 					</div>
 				</footer>
+
+			</div>
+			<div className=''>
+				<Bug />
 			</div>
 		</>
 	)
