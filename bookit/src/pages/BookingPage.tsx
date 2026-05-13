@@ -1,78 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import API from '../API/api'
 
-interface Space {
+interface Listing {
 	id: number
-	name: string
-	location: string
-	rating: number
-	reviews: number
-	amenities: string[]
-	pricePerHour: number
-	imageUrl: string
+	title: string
+	city: string
+	category: string
+	price_per_night: number
+	max_guests: number
+	description: string
+	image_url: string
+	amenities: string
 }
-
-const spacesData: Space[] = [
-	{
-		id: 1,
-		name: 'Modern Co-Working Space',
-		location: 'Downtown Manhattan',
-		rating: 4.9,
-		reviews: 124,
-		amenities: ['WiFi', 'Projector', 'Coffee'],
-		pricePerHour: 45,
-		imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80',
-	},
-	{
-		id: 2,
-		name: 'Executive Meeting Room',
-		location: 'Financial District',
-		rating: 4.8,
-		reviews: 89,
-		amenities: ['WiFi', 'Projector', 'Coffee'],
-		pricePerHour: 85,
-		imageUrl: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&q=80',
-	},
-	{
-		id: 3,
-		name: 'Creative Studio Space',
-		location: 'Brooklyn',
-		rating: 4.7,
-		reviews: 56,
-		amenities: ['WiFi', 'Whiteboard', 'Coffee'],
-		pricePerHour: 35,
-		imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
-	},
-	{
-		id: 4,
-		name: 'Private Office Suite',
-		location: 'Midtown',
-		rating: 4.9,
-		reviews: 201,
-		amenities: ['WiFi', 'Parking', 'Kitchen'],
-		pricePerHour: 120,
-		imageUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&q=80',
-	},
-	{
-		id: 5,
-		name: 'Tech Hub Workspace',
-		location: 'SoHo',
-		rating: 4.6,
-		reviews: 73,
-		amenities: ['WiFi', 'Projector', 'Kitchen'],
-		pricePerHour: 55,
-		imageUrl: 'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=600&q=80',
-	},
-	{
-		id: 6,
-		name: 'Quiet Focus Room',
-		location: 'Upper East Side',
-		rating: 4.8,
-		reviews: 42,
-		amenities: ['WiFi', 'Coffee', 'Whiteboard'],
-		pricePerHour: 30,
-		imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80',
-	},
-]
 
 const amenityIcons: Record<string, string> = {
 	WiFi: '📶',
@@ -81,16 +20,29 @@ const amenityIcons: Record<string, string> = {
 	Whiteboard: '📋',
 	Parking: '🅿️',
 	Kitchen: '🍳',
+	Pool: '🏊',
 }
 
 export default function BookingPage() {
-	const [priceRange, setPriceRange] = useState(200)
-	const [capacity, setCapacity] = useState('')
+	const [listings, setListings] = useState<Listing[]>([])
+	const [priceRange, setPriceRange] = useState(10000)
 	const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
 	const [searchTerm, setSearchTerm] = useState('')
 	const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+	const [loading, setLoading] = useState(true)
 
-	const amenitiesList = ['WiFi', 'Projector', 'Coffee', 'Whiteboard', 'Parking', 'Kitchen']
+	useEffect(() => {
+		API.get('/listings/')
+			.then((res) => setListings(res.data))
+			.catch(() => setListings([]))
+			.finally(() => setLoading(false))
+	}, [])
+
+	const allAmenities = Array.from(
+		new Set(listings.flatMap((l) => l.amenities.split(',').map((a) => a.trim()).filter(Boolean)))
+	)
+
+	const maxPrice = listings.length > 0 ? Math.max(...listings.map((l) => l.price_per_night)) : 10000
 
 	function toggleAmenity(amenity: string) {
 		setSelectedAmenities((prev) =>
@@ -101,16 +53,18 @@ export default function BookingPage() {
 	}
 
 	function resetFilters() {
-		setPriceRange(200)
-		setCapacity('')
+		setPriceRange(maxPrice)
 		setSelectedAmenities([])
 		setSearchTerm('')
 	}
 
-	const filtered = spacesData.filter((space) => {
-		if (space.pricePerHour > priceRange) return false
-		if (searchTerm && !space.name.toLowerCase().includes(searchTerm.toLowerCase()) && !space.location.toLowerCase().includes(searchTerm.toLowerCase())) return false
-		if (selectedAmenities.length > 0 && !selectedAmenities.every((a) => space.amenities.includes(a))) return false
+	const filtered = listings.filter((l) => {
+		if (l.price_per_night > priceRange) return false
+		if (searchTerm && !l.title.toLowerCase().includes(searchTerm.toLowerCase()) && !l.city.toLowerCase().includes(searchTerm.toLowerCase())) return false
+		if (selectedAmenities.length > 0) {
+			const listingAmenities = l.amenities.split(',').map((a) => a.trim().toLowerCase())
+			if (!selectedAmenities.every((a) => listingAmenities.includes(a.toLowerCase()))) return false
+		}
 		return true
 	})
 
@@ -156,118 +110,120 @@ export default function BookingPage() {
 							<h2 className="text-white text-lg font-semibold">Filters</h2>
 						</div>
 
+						{/* Search */}
+						<div className="mb-6">
+							<label className="text-white text-sm font-semibold block mb-3">Поиск</label>
+							<input
+								type="text"
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								placeholder="Название или город..."
+								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
+							/>
+						</div>
+
 						{/* Price Range */}
 						<div className="mb-6">
-							<label className="text-white text-sm font-semibold block mb-3">Price Range</label>
+							<label className="text-white text-sm font-semibold block mb-3">Цена</label>
 							<input
 								type="range"
 								min={0}
-								max={200}
+								max={maxPrice}
 								value={priceRange}
 								onChange={(e) => setPriceRange(Number(e.target.value))}
 								className="w-full accent-[#f5a623]"
 							/>
 							<div className="flex justify-between text-zinc-400 text-xs mt-1">
-								<span>$0</span>
-								<span>${priceRange}/hour</span>
+								<span>€0</span>
+								<span>€{priceRange}/ночь</span>
 							</div>
-						</div>
-
-						{/* Capacity */}
-						<div className="mb-6">
-							<label className="text-white text-sm font-semibold block mb-3">Capacity</label>
-							<select
-								value={capacity}
-								onChange={(e) => setCapacity(e.target.value)}
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm"
-							>
-								<option value="">Any capacity</option>
-								<option value="1-4">1-4 people</option>
-								<option value="5-10">5-10 people</option>
-								<option value="10+">10+ people</option>
-							</select>
 						</div>
 
 						{/* Amenities */}
-						<div className="mb-6">
-							<label className="text-white text-sm font-semibold block mb-3">Amenities</label>
-							<div className="flex flex-col gap-3">
-								{amenitiesList.map((amenity) => (
-									<label key={amenity} className="flex items-center gap-3 cursor-pointer">
-										<input
-											type="checkbox"
-											checked={selectedAmenities.includes(amenity)}
-											onChange={() => toggleAmenity(amenity)}
-											className="w-4 h-4 rounded border-gray-600 bg-[#2a3147] accent-[#f5a623]"
-										/>
-										<span className="text-zinc-300 text-sm">{amenity}</span>
-									</label>
-								))}
+						{allAmenities.length > 0 && (
+							<div className="mb-6">
+								<label className="text-white text-sm font-semibold block mb-3">Удобства</label>
+								<div className="flex flex-col gap-3">
+									{allAmenities.map((amenity) => (
+										<label key={amenity} className="flex items-center gap-3 cursor-pointer">
+											<input
+												type="checkbox"
+												checked={selectedAmenities.includes(amenity)}
+												onChange={() => toggleAmenity(amenity)}
+												className="w-4 h-4 rounded border-gray-600 bg-[#2a3147] accent-[#f5a623]"
+											/>
+											<span className="text-zinc-300 text-sm">{amenity}</span>
+										</label>
+									))}
+								</div>
 							</div>
-						</div>
-
-						{/* Date */}
-						<div className="mb-6">
-							<label className="text-white text-sm font-semibold block mb-3">Date</label>
-							<input
-								type="date"
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm"
-							/>
-						</div>
+						)}
 
 						{/* Reset */}
 						<button
 							onClick={resetFilters}
 							className="w-full border border-white/20 text-white rounded-xl py-3 text-sm font-semibold hover:bg-white/5 transition"
 						>
-							Reset Filters
+							Сбросить фильтры
 						</button>
 					</div>
 				</div>
 
-				{/* Space cards */}
+				{/* Cards */}
 				<div className="flex-1">
-					<div className="grid gap-6 sm:grid-cols-2">
-						{filtered.map((space) => (
-							<div key={space.id} className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10">
-								<div className="w-full h-52 overflow-hidden">
-									<img src={space.imageUrl} alt={space.name} className="w-full h-full object-cover" />
-								</div>
-								<div className="p-5 flex flex-col gap-2">
-									<h3 className="text-white text-lg font-semibold">{space.name}</h3>
-									<div className="flex items-center gap-1 text-zinc-400 text-sm">
-										<span>📍</span>
-										<span>{space.location}</span>
-									</div>
-									<div className="flex items-center gap-2 text-sm">
-										<span className="text-[#f5a623]">★</span>
-										<span className="text-white font-semibold">{space.rating}</span>
-										<span className="text-zinc-400">({space.reviews} reviews)</span>
-									</div>
-									<div className="flex items-center gap-2 flex-wrap mt-1">
-										{space.amenities.map((a) => (
-											<span
-												key={a}
-												className="flex items-center gap-1 text-zinc-300 text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5"
-											>
-												{amenityIcons[a] || ''} {a}
-											</span>
-										))}
-									</div>
-									<hr className="border-white/10 mt-2" />
-									<div className="flex items-center justify-between mt-1">
-										<div className="text-white text-lg font-bold">
-											<span className="text-[#f5a623]">${space.pricePerHour}</span>
-											<span className="text-zinc-400 text-xs font-normal">/hour</span>
+					{loading ? (
+						<div className="text-zinc-400 text-center py-20">Загрузка...</div>
+					) : filtered.length === 0 ? (
+						<div className="text-zinc-400 text-center py-20">Ничего не найдено</div>
+					) : (
+						<div className="grid gap-6 sm:grid-cols-2">
+							{filtered.map((l) => (
+								<div key={l.id} className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10">
+									{l.image_url && (
+										<div className="w-full h-52 overflow-hidden">
+											<img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
 										</div>
-										<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
-											Book now
-										</button>
+									)}
+									<div className="p-5 flex flex-col gap-2">
+										<h3 className="text-white text-lg font-semibold">{l.title}</h3>
+										<div className="flex items-center gap-1 text-zinc-400 text-sm">
+											<span>📍</span>
+											<span>{l.city}</span>
+										</div>
+										<div className="flex items-center gap-2 text-sm">
+											<span className="text-[#f5a623]">🏷️</span>
+											<span className="text-[#f5a623] font-semibold">{l.category}</span>
+										</div>
+										{l.amenities && (
+											<div className="flex items-center gap-2 flex-wrap mt-1">
+												{l.amenities.split(',').map((a) => {
+													const trimmed = a.trim()
+													return (
+														<span
+															key={trimmed}
+															className="flex items-center gap-1 text-zinc-300 text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5"
+														>
+															{amenityIcons[trimmed] || ''} {trimmed}
+														</span>
+													)
+												})}
+											</div>
+										)}
+										<hr className="border-white/10 mt-2" />
+										<div className="flex items-center justify-between mt-1">
+											<div className="text-white text-lg font-bold">
+												<span className="text-[#f5a623]">€{l.price_per_night}</span>
+												<span className="text-zinc-400 text-xs font-normal">/ночь</span>
+											</div>
+											<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
+												Book now
+											</button>
+										</div>
 									</div>
 								</div>
-							</div>
-						))}
-					</div>
+							))}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

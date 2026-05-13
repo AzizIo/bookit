@@ -25,14 +25,24 @@ export default function AdminPage() {
 		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
 			setForm({ ...form, [key]: e.target.value })
 
+	const [error, setError] = useState('')
+	const [success, setSuccess] = useState('')
+
 	async function handleSubmit() {
-		const res = await API.post('/listings/', {
-			...form,
-			price_per_night: parseFloat(form.price_per_night),
-			max_guests: parseInt(form.max_guests),
-		})
-		setListings((prev) => [res.data, ...prev])
-		setForm({ title: '', city: '', category: 'apartment', price_per_night: '', max_guests: '2', description: '', image_url: '', amenities: '' })
+		setError('')
+		setSuccess('')
+		try {
+			const res = await API.post('/listings/', {
+				...form,
+				price_per_night: parseFloat(form.price_per_night),
+				max_guests: parseInt(form.max_guests),
+			})
+			setListings((prev) => [res.data, ...prev])
+			setForm({ title: '', city: '', category: 'apartment', price_per_night: '', max_guests: '2', description: '', image_url: '', amenities: '' })
+			setSuccess('Место добавлено!')
+		} catch {
+			setError('Ошибка: убедитесь что бэкенд запущен (python main.py на порту 8000)')
+		}
 	}
 
 	return (
@@ -40,7 +50,10 @@ export default function AdminPage() {
 			<div className="max-w-lg mx-auto">
 				<h1 className="text-2xl font-bold text-gray-800 mb-6">Добавить место</h1>
 
-				<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+					{error && <div className="bg-red-100 border border-red-300 rounded-xl px-4 py-3 mb-4 text-red-700 text-sm">{error}</div>}
+				{success && <div className="bg-green-100 border border-green-300 rounded-xl px-4 py-3 mb-4 text-green-700 text-sm">{success}</div>}
+
+			<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
 					<div>
 						<label className="block text-sm text-gray-600 mb-1">Название</label>
 						<input className={inp} value={form.title} onChange={set('title')} placeholder="Уютная студия" />
