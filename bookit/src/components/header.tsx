@@ -1,9 +1,18 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import avatar from '../assets/Avatar.png'
 import logo from '../assets/logo.png'
+import { useAuth } from '../context/AuthContext'
 import Search from './search'
 
 export default function Header() {
+	const { user, logout } = useAuth()
+	const navigate = useNavigate()
+
+	function handleLogout() {
+		logout()
+		navigate('/')
+	}
+
 	return (
 		<>
 			<nav className='bg-[#0f1629]' >
@@ -17,13 +26,32 @@ export default function Header() {
 					<div className="hidden md:flex items-center gap-6">
 						<Link to="/" className="text-white hover:text-[#f5a623] transition font-medium">Home</Link>
 						<Link to="/booking" className="text-white hover:text-[#f5a623] transition font-medium">Booking</Link>
-						<Link to="/admin" className="text-white hover:text-[#f5a623] transition font-medium">Admin</Link>
+						{user?.role === 'admin' && (
+							<Link to="/admin" className="text-white hover:text-[#f5a623] transition font-medium">Admin</Link>
+						)}
 						<Search />
 					</div>
 
 					<div className="accoutn flex flex-row items-center gap-4">
-						<div className="acc-name text-zinc-400">Azizbek</div>
-						<div className="acc-image bg-gray-500 rounded-full px-2 py-2 w-9 h-9"><img src={avatar} alt="Avatar" /></div>
+						{user ? (
+							<>
+								<div className="acc-name text-zinc-400">{user.name}</div>
+								<div className="acc-image bg-gray-500 rounded-full px-2 py-2 w-9 h-9"><img src={avatar} alt="Avatar" /></div>
+								<button
+									onClick={handleLogout}
+									className="text-zinc-400 hover:text-white text-sm transition"
+								>
+									Выйти
+								</button>
+							</>
+						) : (
+							<Link
+								to="/login"
+								className="bg-[#f5a623] text-[#0f1629] font-semibold px-4 py-2 rounded-xl hover:bg-[#e09610] transition text-sm"
+							>
+								Войти
+							</Link>
+						)}
 					</div>
 				</div>
 				<hr className='text-gray-600' />

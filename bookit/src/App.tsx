@@ -1,20 +1,27 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import Header from './components/header'
+import { AuthProvider } from './context/AuthContext'
 import AdminPage from './pages/AdminPage'
-import MainPage from './pages/MainPage'
 import BookingPage from './pages/BookingPage'
+import LoginPage from './pages/LoginPage'
+import MainPage from './pages/MainPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
   return (
     <BrowserRouter>
-      <Header />
-      <Routes>
-        <Route path="/" element={<MainPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/booking" element={<BookingPage />} />
-        <Route path="*" element={<MainPage />} />
-      </Routes>
+      <AuthProvider>
+        <Header />
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<MainPage />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
