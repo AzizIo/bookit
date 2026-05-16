@@ -33,7 +33,9 @@ export default function Header() {
 					<div className="accoutn flex flex-row items-center gap-4">
 						{user ? (
 							<>
-								<div className="acc-name text-zinc-400">{user.name}</div>
+								<Link to="/user">
+									<div className="acc-name text-zinc-400">{user.name}</div>
+								</Link>
 								<div className="acc-image bg-gray-500 rounded-full px-2 py-2 w-9 h-9"><img src={avatar} alt="Avatar" /></div>
 								<button
 									onClick={handleLogout}
