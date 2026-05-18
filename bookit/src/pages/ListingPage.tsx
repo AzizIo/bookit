@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
+import GlowCard from '../components/GlowCard'
 
 interface Listing {
 	id: number
@@ -347,8 +348,8 @@ export default function ListingPage() {
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.5 + i * 0.15 }}
-										className="bg-[#1a2035] border border-white/10 rounded-2xl p-5"
 									>
+									<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
 										<div className="flex items-center justify-between mb-3">
 											<div>
 												<p className="text-white font-semibold text-sm">{review.name}</p>
@@ -361,6 +362,7 @@ export default function ListingPage() {
 											</div>
 										</div>
 										<p className="text-zinc-400 text-sm">{review.text}</p>
+									</GlowCard>
 									</motion.div>
 								))}
 							</div>

@@ -1,0 +1,391 @@
+diff --git a/bookit/src/components/CursorGradient.tsx b/bookit/src/components/CursorGradient.tsx
+new file mode 100644
+index 0000000..6880a67
+--- /dev/null
++++ b/bookit/src/components/CursorGradient.tsx
+@@ -0,0 +1,55 @@
++import { useEffect, useState } from 'react'
++import { motion, useMotionValue, useSpring } from 'framer-motion'
++
++interface CursorGradientProps {
++	color1?: string
++	color2?: string
++	size?: number
++}
++
++export default function CursorGradient({ color1 = '#f5a623', color2 = '#e84393', size = 500 }: CursorGradientProps) {
++	const [visible, setVisible] = useState(false)
++	const mouseX = useMotionValue(-500)
++	const mouseY = useMotionValue(-500)
++
++	const springX = useSpring(mouseX, { damping: 25, stiffness: 150 })
++	const springY = useSpring(mouseY, { damping: 25, stiffness: 150 })
++
++	useEffect(() => {
++		function handleMove(e: MouseEvent) {
++			mouseX.set(e.clientX - size / 2)
++			mouseY.set(e.clientY - size / 2)
++			if (!visible) setVisible(true)
++		}
++		function handleLeave() {
++			setVisible(false)
++		}
++		window.addEventListener('mousemove', handleMove)
++		document.addEventListener('mouseleave', handleLeave)
++		return () => {
++			window.removeEventListener('mousemove', handleMove)
++			document.removeEventListener('mouseleave', handleLeave)
++		}
++	}, [mouseX, mouseY, size, visible])
++
++	return (
++		<motion.div
++			className="pointer-events-none fixed inset-0 z-0"
++			style={{ opacity: visible ? 1 : 0 }}
++		>
++			<motion.div
++				style={{
++					position: 'fixed',
++					left: springX,
++					top: springY,
++					width: size,
++					height: size,
++					borderRadius: '50%',
++					background: `radial-gradient(circle, ${color1}12 0%, ${color2}08 40%, transparent 70%)`,
++					filter: 'blur(40px)',
++					pointerEvents: 'none',
++				}}
++			/>
++		</motion.div>
++	)
++}
+diff --git a/bookit/src/components/GlowCard.tsx b/bookit/src/components/GlowCard.tsx
+new file mode 100644
+index 0000000..8f09fcf
+--- /dev/null
++++ b/bookit/src/components/GlowCard.tsx
+@@ -0,0 +1,59 @@
++import { useRef, useState } from 'react'
++import { motion } from 'framer-motion'
++
++interface GlowCardProps {
++	children: React.ReactNode
++	className?: string
++	onClick?: () => void
++	glowColor?: string
++}
++
++export default function GlowCard({ children, className = '', onClick, glowColor = '#f5a623' }: GlowCardProps) {
++	const ref = useRef<HTMLDivElement>(null)
++	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
++	const [isHovered, setIsHovered] = useState(false)
++
++	function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
++		if (!ref.current) return
++		const rect = ref.current.getBoundingClientRect()
++		setMousePos({
++			x: e.clientX - rect.left,
++			y: e.clientY - rect.top,
++		})
++	}
++
++	return (
++		<motion.div
++			ref={ref}
++			onMouseMove={handleMouseMove}
++			onMouseEnter={() => setIsHovered(true)}
++			onMouseLeave={() => setIsHovered(false)}
++			onClick={onClick}
++			whileHover={{ y: -6, transition: { duration: 0.2 } }}
++			className={`relative overflow-hidden ${className}`}
++			style={{ cursor: onClick ? 'pointer' : 'default' }}
++		>
++			{/* Cursor glow */}
++			<div
++				className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
++				style={{
++					opacity: isHovered ? 1 : 0,
++					background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, ${glowColor}15, transparent 60%)`,
++				}}
++			/>
++			{/* Border glow */}
++			<div
++				className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] transition-opacity duration-300"
++				style={{
++					opacity: isHovered ? 1 : 0,
++					background: `radial-gradient(300px circle at ${mousePos.x}px ${mousePos.y}px, ${glowColor}40, transparent 60%)`,
++					mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
++					maskComposite: 'exclude',
++					WebkitMaskComposite: 'xor',
++					padding: '1px',
++				}}
++			/>
++			<div className="relative z-10">{children}</div>
++		</motion.div>
++	)
++}
+diff --git a/bookit/src/components/GlowText.tsx b/bookit/src/components/GlowText.tsx
+new file mode 100644
+index 0000000..14a0eae
+--- /dev/null
++++ b/bookit/src/components/GlowText.tsx
+@@ -0,0 +1,43 @@
++import { useRef, useState } from 'react'
++
++interface GlowTextProps {
++	children: React.ReactNode
++	className?: string
++	glowColor?: string
++}
++
++export default function GlowText({ children, className = '', glowColor = '#f5a623' }: GlowTextProps) {
++	const ref = useRef<HTMLDivElement>(null)
++	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
++	const [isHovered, setIsHovered] = useState(false)
++
++	function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
++		if (!ref.current) return
++		const rect = ref.current.getBoundingClientRect()
++		setMousePos({
++			x: e.clientX - rect.left,
++			y: e.clientY - rect.top,
++		})
++	}
++
++	return (
++		<div
++			ref={ref}
++			onMouseMove={handleMouseMove}
++			onMouseEnter={() => setIsHovered(true)}
++			onMouseLeave={() => setIsHovered(false)}
++			className={`relative inline transition-colors duration-300 ${className}`}
++			style={{
++				backgroundImage: isHovered
++					? `radial-gradient(250px circle at ${mousePos.x}px ${mousePos.y}px, ${glowColor}, currentColor 70%)`
++					: 'none',
++				WebkitBackgroundClip: isHovered ? 'text' : 'unset',
++				WebkitTextFillColor: isHovered ? 'transparent' : 'unset',
++				backgroundClip: isHovered ? 'text' : 'unset',
++				display: 'inline',
++			}}
++		>
++			{children}
++		</div>
++	)
++}
+diff --git a/bookit/src/components/ShimmerButton.tsx b/bookit/src/components/ShimmerButton.tsx
+new file mode 100644
+index 0000000..bbddb66
+--- /dev/null
++++ b/bookit/src/components/ShimmerButton.tsx
+@@ -0,0 +1,27 @@
++import { motion } from 'framer-motion'
++
++interface ShimmerButtonProps {
++	children: React.ReactNode
++	className?: string
++	onClick?: () => void
++}
++
++export default function ShimmerButton({ children, className = '', onClick }: ShimmerButtonProps) {
++	return (
++		<motion.button
++			onClick={onClick}
++			whileHover={{ scale: 1.03 }}
++			whileTap={{ scale: 0.97 }}
++			className={`relative overflow-hidden group ${className}`}
++		>
++			{/* Shimmer sweep */}
++			<span
++				className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"
++				style={{
++					background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
++				}}
++			/>
++			<span className="relative z-10">{children}</span>
++		</motion.button>
++	)
++}
+diff --git a/bookit/src/pages/BookingPage.tsx b/bookit/src/pages/BookingPage.tsx
+index c36c471..4666117 100644
+--- a/bookit/src/pages/BookingPage.tsx
++++ b/bookit/src/pages/BookingPage.tsx
+@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
+ import { motion } from 'framer-motion'
+ import API from '../API/api'
+ import { useAuth } from '../context/AuthContext'
++import GlowCard from '../components/GlowCard'
++import CursorGradient from '../components/CursorGradient'
+ 
+ interface Listing {
+ 	id: number
+@@ -75,7 +77,8 @@ export default function BookingPage() {
+ 	})
+ 
+ 	return (
+-		<div className="min-h-screen bg-[#0f1629]">
++		<div className="min-h-screen bg-[#0f1629] relative">
++			<CursorGradient />
+ 			{/* Page header */}
+ 			<motion.div
+ 				initial={{ opacity: 0, y: -20 }}
+@@ -205,9 +208,10 @@ export default function BookingPage() {
+ 									initial={{ opacity: 0, y: 30 }}
+ 									animate={{ opacity: 1, y: 0 }}
+ 									transition={{ duration: 0.4, delay: i * 0.08 }}
+-									whileHover={{ y: -5, transition: { duration: 0.2 } }}
+-									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 cursor-pointer relative group"
++								>
++								<GlowCard
+ 									onClick={() => navigate(`/listing/${l.id}`)}
++									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 relative group"
+ 								>
+ 									{/* Admin pencil */}
+ 									{isAdmin && (
+@@ -273,6 +277,7 @@ export default function BookingPage() {
+ 											</motion.button>
+ 										</div>
+ 									</div>
++								</GlowCard>
+ 								</motion.div>
+ 							))}
+ 						</div>
+diff --git a/bookit/src/pages/ListingPage.tsx b/bookit/src/pages/ListingPage.tsx
+index e450780..32dba39 100644
+--- a/bookit/src/pages/ListingPage.tsx
++++ b/bookit/src/pages/ListingPage.tsx
+@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
+ import { motion, AnimatePresence } from 'framer-motion'
+ import API from '../API/api'
+ import { useAuth } from '../context/AuthContext'
++import GlowCard from '../components/GlowCard'
+ 
+ interface Listing {
+ 	id: number
+@@ -347,8 +348,8 @@ export default function ListingPage() {
+ 										initial={{ opacity: 0, y: 20 }}
+ 										animate={{ opacity: 1, y: 0 }}
+ 										transition={{ delay: 0.5 + i * 0.15 }}
+-										className="bg-[#1a2035] border border-white/10 rounded-2xl p-5"
+ 									>
++									<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
+ 										<div className="flex items-center justify-between mb-3">
+ 											<div>
+ 												<p className="text-white font-semibold text-sm">{review.name}</p>
+@@ -361,6 +362,7 @@ export default function ListingPage() {
+ 											</div>
+ 										</div>
+ 										<p className="text-zinc-400 text-sm">{review.text}</p>
++									</GlowCard>
+ 									</motion.div>
+ 								))}
+ 							</div>
+diff --git a/bookit/src/pages/MainPage.tsx b/bookit/src/pages/MainPage.tsx
+index 73aef99..98903d9 100644
+--- a/bookit/src/pages/MainPage.tsx
++++ b/bookit/src/pages/MainPage.tsx
+@@ -6,6 +6,10 @@ import checkmark from '../assets/checkmark.png'
+ import lupa from '../assets/lupa.png'
+ import time from '../assets/time.png'
+ import Bug from '../components/bug'
++import GlowCard from '../components/GlowCard'
++import GlowText from '../components/GlowText'
++import CursorGradient from '../components/CursorGradient'
++import ShimmerButton from '../components/ShimmerButton'
+ export default function MainPage() {
+ 	const navigate = useNavigate()
+ 	interface Listing {
+@@ -26,7 +30,8 @@ export default function MainPage() {
+ 	}, [])
+ 	return (
+ 		<>
+-			<div className="main bg-[#12192c] min-h-screen">
++			<CursorGradient />
++			<div className="main bg-[#12192c] min-h-screen relative z-10">
+ 				{/* Заголовок */}
+ 				<section className='' >
+ 					{/* Текст для mobile */}
+@@ -36,7 +41,7 @@ export default function MainPage() {
+ 						transition={{ duration: 0.7 }}
+ 						className="h1 text-white md:hidden text-5xl font-bold text-center pt-40"
+ 					>
+-						<p>Бронируй <br /> что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
++						<p><GlowText className="text-white">Бронируй <br /> что угодно.</GlowText><br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
+ 					</motion.div>
+ 					{/* Текст для desktop */}
+ 					<motion.div
+@@ -45,7 +50,7 @@ export default function MainPage() {
+ 						transition={{ duration: 0.7 }}
+ 						className="h1 text-white tracking-wide  font-jakarta font-bold text-7xl hidden md:block text-center pt-40"
+ 					>
+-						<p>Бронируй что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
++						<p><GlowText className="text-white">Бронируй что угодно.</GlowText><br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
+ 					</motion.div>
+ 					<motion.div
+ 						initial={{ opacity: 0 }}
+@@ -83,7 +88,7 @@ export default function MainPage() {
+ 							</div>
+ 						</div>
+ 						<div className="buttin flex justify-center  w-full">
+-							<button className='rounded-xl px-8 py-3 text-lg border font-semibold text-black bg-[#f5a623] w-full'>Найти и забронировать</button>
++							<ShimmerButton className='rounded-xl px-8 py-3 text-lg border font-semibold text-black bg-[#f5a623] w-full'>Найти и забронировать</ShimmerButton>
+ 						</div>
+ 					</div>
+ 				</motion.form>
+@@ -109,9 +114,10 @@ export default function MainPage() {
+ 								whileInView={{ opacity: 1, y: 0 }}
+ 								viewport={{ once: true }}
+ 								transition={{ duration: 0.4, delay: i * 0.1 }}
+-								whileHover={{ y: -5, transition: { duration: 0.2 } }}
++							>
++							<GlowCard
+ 								onClick={() => navigate(`/listing/${l.id}`)}
+-								className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto cursor-pointer"
++								className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto"
+ 							>
+ 								{/* Картинка */}
+ 								<div className="w-full h-70 overflow-hidden">
+@@ -164,6 +170,7 @@ export default function MainPage() {
+ 									</div>
+ 
+ 								</div>
++							</GlowCard>
+ 							</motion.div>
+ 						))}
+ 					</div>
+@@ -225,7 +232,7 @@ export default function MainPage() {
+ 						{/* Заглушка, просто для вида */}
+ 						<div className="flex  justify-center my-10 ">
+ 
+-							<div className="bg-[#1a2332] rounded-2xl  p-6 max-w-sm shadow-lg">
++							<GlowCard className="bg-[#1a2332] rounded-2xl p-6 max-w-sm shadow-lg">
+ 								<div className="flex gap-1 mb-4">
+ 									{[...Array(5)].map((_, i) => (
+ 										<span key={i} className="text-yellow-400 text-xl">★</span>
+@@ -247,8 +254,7 @@ export default function MainPage() {
+ 										<p className="text-gray-400 text-xs">Менеджер продуктов</p>
+ 									</div>
+ 								</div>
+-							</div>
+-							);
++							</GlowCard>
+ 
+ 						</div>
+ 					</div>
+@@ -260,14 +266,12 @@ export default function MainPage() {
+ 						<p className='text-zinc-500 mt-4 mx-20' >Присоединяйтесь к тысячам профессионалов, которые доверяют BookIt</p>
+ 					</div>
+ 					<div className="start-bth mx-auto flex justify-center py-10">
+-						<motion.button
+-							whileHover={{ scale: 1.05 }}
+-							whileTap={{ scale: 0.95 }}
++						<ShimmerButton
+ 							onClick={() => navigate('/booking')}
+ 							className="bg-amber-500 hover:bg-amber-600 text-black font-semibold py-4 px-8 rounded-xl text-lg transition shadow-md shadow-amber-400/50"
+ 						>
+ 							Начать бронирование
+-						</motion.button>
++						</ShimmerButton>
+ 					</div>
+ 				</footer>
+ 

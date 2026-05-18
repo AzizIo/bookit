@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
+import GlowCard from '../components/GlowCard'
+import CursorGradient from '../components/CursorGradient'
 
 interface Listing {
 	id: number
@@ -75,7 +77,8 @@ export default function BookingPage() {
 	})
 
 	return (
-		<div className="min-h-screen bg-[#0f1629]">
+		<div className="min-h-screen bg-[#0f1629] relative">
+			<CursorGradient />
 			{/* Page header */}
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}
@@ -205,9 +208,10 @@ export default function BookingPage() {
 									initial={{ opacity: 0, y: 30 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.4, delay: i * 0.08 }}
-									whileHover={{ y: -5, transition: { duration: 0.2 } }}
-									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 cursor-pointer relative group"
+								>
+								<GlowCard
 									onClick={() => navigate(`/listing/${l.id}`)}
+									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 relative group"
 								>
 									{/* Admin pencil */}
 									{isAdmin && (
@@ -273,6 +277,7 @@ export default function BookingPage() {
 											</motion.button>
 										</div>
 									</div>
+								</GlowCard>
 								</motion.div>
 							))}
 						</div>
