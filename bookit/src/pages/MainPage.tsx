@@ -30,14 +30,14 @@ export default function MainPage() {
 				<section className='' >
 					{/* Текст для mobile */}
 					<div className="h1 text-white md:hidden text-5xl font-bold text-center pt-40">
-						<p>Book <br /> anything.<br /> <span className='text-[#f5a623]' >Instantly.</span> </p>
+						<p>Бронируй <br /> что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
 					</div>
 					{/* Текст для desktop */}
 					<div className="h1 text-white tracking-wide  font-jakarta font-bold text-7xl hidden md:block text-center pt-40">
-						<p>Book anything.<br /> <span className='text-[#f5a623]' >Instantly.</span> </p>
+						<p>Бронируй что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
 					</div>
 					<div className="about mx-4 my-8">
-						<p className='text-zinc-400 text-center font-jakarta' >Find and reserve workspaces, meeting <br /> rooms, and services in seconds. Professional spaces when you need them.</p>
+						<p className='text-zinc-400 text-center font-jakarta' >Находите и бронируйте рабочие пространства, <br /> переговорные и услуги за секунды. Профессиональные пространства, когда они вам нужны.</p>
 					</div>
 				</section>
 				{/* Секция поиска */}
@@ -47,14 +47,14 @@ export default function MainPage() {
 							<div className="search flex w-full md:w-auto">
 								<input type="text" onChange={e => setSearchTerm(e.target.value)}
 									value={searchTerm}
-									placeholder='Location' required className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
+									placeholder='Местоположение' required className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
 							</div>
 							<div className="date flex w-full md:w-auto">
 								<input type="date" className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
 							</div>
 							<div className="sel flex w-full md:w-auto">
 								<select className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' name="" id="">
-									<option value="">Categories</option>
+									<option value="">Категории</option>
 									<option value="1">1</option>
 									<option value="2">2</option>
 									<option value="3">3</option>
@@ -62,7 +62,7 @@ export default function MainPage() {
 							</div>
 						</div>
 						<div className="buttin flex justify-center  w-full">
-							<button className='rounded-xl px-8 py-3 text-lg border font-semibold text-black bg-[#f5a623] w-full'>Find & Book</button>
+							<button className='rounded-xl px-8 py-3 text-lg border font-semibold text-black bg-[#f5a623] w-full'>Найти и забронировать</button>
 						</div>
 					</div>
 				</form>
@@ -71,8 +71,8 @@ export default function MainPage() {
 				{/* Секция предложений */}
 				<div className="min-h-screen bg-[#0f1629] px-4 py-25 lg:px-8 lg:py-30">
 					<div className="max-w-5xl py-8 mx-auto text-center mb-5 lg:mb-6">
-						<h1 className='text-white font-semibold text-5xl'>Featured Spaces</h1>
-						<p className='text-zinc-400 mt-4'>Handpicked spaces for your next meeting or project</p>
+						<h1 className='text-white font-semibold text-5xl'>Лучшие места</h1>
+						<p className='text-zinc-400 mt-4'>Подобранные пространства для вашей следующей встречи или проекта</p>
 					</div>
 					<div className="grid gap-4 justify-center sm:grid-cols-2 lg:grid-cols-3 mx-auto max-w-[1280px]">
 						{AllListings.map((l: Listing) => (
@@ -119,11 +119,11 @@ export default function MainPage() {
 									<div className="flex items-center justify-between mt-1">
 										<div className="text-white text-lg font-bold">
 											<span className="text-[#f5a623]">€{l.price_per_night}</span>
-											<span className="text-[#8b93a8] text-xs font-normal">/night</span>
+											<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
 										</div>
 										<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold
         px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
-											Book now
+											Забронировать
 										</button>
 									</div>
 
@@ -134,24 +134,24 @@ export default function MainPage() {
 				</div>
 				<section>
 					<div className="content flex mt-20 text-white flex-col text-center">
-						<h1 className='text-4xl font-semibold' >How it works</h1>
-						<p className='text-zinc-500 mt-4' >Book your perfect space in three simple steps</p>
+						<h1 className='text-4xl font-semibold' >Как это работает</h1>
+						<p className='text-zinc-500 mt-4' >Забронируйте идеальное пространство в три простых шага</p>
 					</div>
 					<div className="steps flex flex-col md:flex-row gap-8 justify-center items-center max-w-5xl mx-auto mt-10">
 						<div className="step flex flex-col items-center gap-4 mt-10">
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={lupa} alt="Search" /></div>
-							<h2 className='text-xl text-white font-semibold'>1. Search</h2>
-							<p className='flex text-center mx-4 text-zinc-400'>Browse through hundreds of verified spaces tailored to your needs and location</p>
+							<h2 className='text-xl text-white font-semibold'>1. Поиск</h2>
+							<p className='flex text-center mx-4 text-zinc-400'>Просматривайте сотни проверенных пространств, подобранных под ваши нужды и местоположение</p>
 						</div>
 						<div className="step flex flex-col items-center gap-4 mt-10">
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={checkmark} alt="Search" /></div>
-							<h2 className='text-xl text-white font-semibold'>2. Choose</h2>
-							<p className='flex text-center mx-4 text-zinc-400'>Compare amenities, prices, and availability to find your ideal workspace</p>
+							<h2 className='text-xl text-white font-semibold'>2. Выбор</h2>
+							<p className='flex text-center mx-4 text-zinc-400'>Сравнивайте удобства, цены и доступность, чтобы найти идеальное рабочее пространство</p>
 						</div>
 						<div className="step flex flex-col items-center gap-4 mt-10">
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={time} alt="Search" /></div>
-							<h2 className='text-xl text-white font-semibold'>3. Book</h2>
-							<p className='flex text-center mx-4 text-zinc-400'>Instant confirmation and seamless check-in. Start working immediately</p>
+							<h2 className='text-xl text-white font-semibold'>3. Бронирование</h2>
+							<p className='flex text-center mx-4 text-zinc-400'>Мгновенное подтверждение и удобная регистрация. Начните работать сразу</p>
 						</div>
 					</div>
 				</section>
@@ -159,8 +159,8 @@ export default function MainPage() {
 				<section className='mt-30' >
 					<div className=''>
 						<div className='content flex text-white flex-col text-center' >
-							<h1 className='text-4xl font-semibold' >What our users say</h1>
-							<p className='text-zinc-500 mt-4' >Trusted by professionals across industries</p>
+							<h1 className='text-4xl font-semibold' >Отзывы пользователей</h1>
+							<p className='text-zinc-500 mt-4' >Нам доверяют профессионалы из разных отраслей</p>
 						</div>
 						{/* Заглушка, просто для вида */}
 						<div className="flex  justify-center my-10 ">
@@ -173,7 +173,7 @@ export default function MainPage() {
 								</div>
 
 								<p className="text-white text-base leading-relaxed mb-6">
-									BookIt made finding the perfect meeting space incredibly easy. The booking process was seamless!
+									С BookIt найти идеальное пространство для встреч стало невероятно просто. Процесс бронирования был безупречным!
 								</p>
 
 								<div className="flex items-center gap-3">
@@ -184,7 +184,7 @@ export default function MainPage() {
 									</div>
 									<div>
 										<p className="text-white font-semibold text-sm">Sarah Chen</p>
-										<p className="text-gray-400 text-xs">Product Manager</p>
+										<p className="text-gray-400 text-xs">Менеджер продуктов</p>
 									</div>
 								</div>
 							</div>
@@ -196,15 +196,15 @@ export default function MainPage() {
 				<footer className='bg-[#242328] pt-4'>
 
 					<div className='content flex text-white flex-col mt-20 text-center' >
-						<h1 className='text-4xl font-semibold mx-10' >Ready to find your perfect space?</h1>
-						<p className='text-zinc-500 mt-4 mx-20' >Join thousands of professionals who trust BookIt for their workspace needs</p>
+						<h1 className='text-4xl font-semibold mx-10' >Готовы найти идеальное пространство?</h1>
+						<p className='text-zinc-500 mt-4 mx-20' >Присоединяйтесь к тысячам профессионалов, которые доверяют BookIt</p>
 					</div>
 					<div className="start-bth mx-auto flex justify-center py-10">
 						<button
 							onClick={() => navigate('/booking')}
 							className="bg-amber-500 hover:bg-amber-600 text-black font-semibold py-4 px-8 rounded-xl text-lg transition active:scale-95 shadow-md shadow-amber-400/50"
 						>
-							Start Booking
+							Начать бронирование
 						</button>
 					</div>
 				</footer>

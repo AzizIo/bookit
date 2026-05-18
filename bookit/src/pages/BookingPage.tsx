@@ -74,7 +74,7 @@ export default function BookingPage() {
 			<div className="px-6 pt-8 pb-4 md:px-12">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-white text-3xl font-bold">Booking</h1>
+						<h1 className="text-white text-3xl font-bold">Бронирование</h1>
 						<p className="text-zinc-400 text-sm mt-1">{filtered.length} найдено</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export default function BookingPage() {
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#f5a623]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 								<path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
 							</svg>
-							<h2 className="text-white text-lg font-semibold">Filters</h2>
+							<h2 className="text-white text-lg font-semibold">Фильтры</h2>
 						</div>
 
 						{/* Search */}
@@ -216,7 +216,7 @@ export default function BookingPage() {
 												<span className="text-zinc-400 text-xs font-normal">/ночь</span>
 											</div>
 											<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
-												Book now
+												Забронировать
 											</button>
 										</div>
 									</div>

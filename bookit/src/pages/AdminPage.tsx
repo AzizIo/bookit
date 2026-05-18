@@ -56,20 +56,20 @@ export default function AdminPage() {
 			<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
 					<div>
 						<label className="block text-sm text-gray-600 mb-1">Название</label>
-						<input className={inp} value={form.title} onChange={set('title')} placeholder="Уютная студия" />
+						<input className={inp} value={form.title} onChange={set('title')} placeholder="Уютная студия в центре" />
 					</div>
 
 					<div className="grid grid-cols-2 gap-3">
 						<div>
 							<label className="block text-sm text-gray-600 mb-1">Город</label>
-							<input className={inp} value={form.city} onChange={set('city')} placeholder="Vienna" />
+							<input className={inp} value={form.city} onChange={set('city')} placeholder="Москва" />
 						</div>
 						<div>
 							<label className="block text-sm text-gray-600 mb-1">Категория</label>
 							<select className={inp} value={form.category} onChange={set('category')}>
-								<option value="apartment">Apartment</option>
-								<option value="house">House</option>
-								<option value="hotel">Hotel</option>
+								<option value="apartment">Квартира</option>
+								<option value="house">Дом</option>
+								<option value="hotel">Отель</option>
 							</select>
 						</div>
 					</div>
