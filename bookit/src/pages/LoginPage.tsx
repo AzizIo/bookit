@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
@@ -22,7 +23,12 @@ export default function LoginPage() {
 
 	return (
 		<div className="min-h-screen bg-[#0f1629] flex items-center justify-center px-4">
-			<div className="bg-[#1a2035] rounded-2xl border border-white/10 p-8 w-full max-w-md">
+			<motion.div
+				initial={{ opacity: 0, y: 30, scale: 0.95 }}
+				animate={{ opacity: 1, y: 0, scale: 1 }}
+				transition={{ duration: 0.5 }}
+				className="bg-[#1a2035] rounded-2xl border border-white/10 p-8 w-full max-w-md"
+			>
 				<h1 className="text-white text-2xl font-bold text-center mb-8">Войти</h1>
 
 				{error && (
@@ -102,7 +108,7 @@ export default function LoginPage() {
 						Зарегистрироваться
 					</Link>
 				</p>
-			</div>
+			</motion.div>
 		</div>
 	)
 }

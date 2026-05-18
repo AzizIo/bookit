@@ -74,8 +74,30 @@ def create_listing(data: ListingCreate):
     db.refresh(listing)
     return listing
 
-@app.delete("/listings/{id}", status_code=204)
-def delete_listing(id: int):
+@app.get("/listings/{listing_id}", response_model=ListingOut)
+def get_listing(listing_id: int):
     db: Session = SessionLocal()
-    db.query(Listing).filter(Listing.id == id).delete()
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+    return listing
+
+@app.put("/listings/{listing_id}", response_model=ListingOut)
+def update_listing(listing_id: int, data: ListingCreate):
+    db: Session = SessionLocal()
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+    for key, val in data.model_dump().items():
+        setattr(listing, key, val)
+    db.commit()
+    db.refresh(listing)
+    return listing
+
+@app.delete("/listings/{listing_id}", status_code=204)
+def delete_listing(listing_id: int):
+    db: Session = SessionLocal()
+    db.query(Listing).filter(Listing.id == listing_id).delete()
     db.commit()

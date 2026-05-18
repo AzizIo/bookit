@@ -1,7 +1,6 @@
 import kaleidoscope from '../assets/kaleidoscope.png'
 import heart from '../assets/heart.png'
 import Bug from '../components/bug.tsx'
-import React from 'react'
 import { useState } from 'react'
 export default function UserPage() {
     const [activeTab, setActiveTab] = useState('upcoming')

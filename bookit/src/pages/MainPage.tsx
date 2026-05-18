@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import API from '../API/api'
 import checkmark from '../assets/checkmark.png'
 import lupa from '../assets/lupa.png'
@@ -29,19 +30,39 @@ export default function MainPage() {
 				{/* Заголовок */}
 				<section className='' >
 					{/* Текст для mobile */}
-					<div className="h1 text-white md:hidden text-5xl font-bold text-center pt-40">
+					<motion.div
+						initial={{ opacity: 0, y: 30 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.7 }}
+						className="h1 text-white md:hidden text-5xl font-bold text-center pt-40"
+					>
 						<p>Бронируй <br /> что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
-					</div>
+					</motion.div>
 					{/* Текст для desktop */}
-					<div className="h1 text-white tracking-wide  font-jakarta font-bold text-7xl hidden md:block text-center pt-40">
+					<motion.div
+						initial={{ opacity: 0, y: 30 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.7 }}
+						className="h1 text-white tracking-wide  font-jakarta font-bold text-7xl hidden md:block text-center pt-40"
+					>
 						<p>Бронируй что угодно.<br /> <span className='text-[#f5a623]' >Мгновенно.</span> </p>
-					</div>
-					<div className="about mx-4 my-8">
+					</motion.div>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.4, duration: 0.6 }}
+						className="about mx-4 my-8"
+					>
 						<p className='text-zinc-400 text-center font-jakarta' >Находите и бронируйте рабочие пространства, <br /> переговорные и услуги за секунды. Профессиональные пространства, когда они вам нужны.</p>
-					</div>
+					</motion.div>
 				</section>
 				{/* Секция поиска */}
-				<form className='w-full mb-20'>
+				<motion.form
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.5, duration: 0.5 }}
+					className='w-full mb-20'
+				>
 					<div className="bg-white/5 mx-4 md:mx-auto border border-gray-700 rounded-xl px-3 py-3 md:px-4 md:py-4 flex flex-col gap-4 items-center max-w-3xl">
 						<div className="flex flex-col md:flex-row gap-3 w-full justify-between items-center">
 							<div className="search flex w-full md:w-auto">
@@ -65,18 +86,33 @@ export default function MainPage() {
 							<button className='rounded-xl px-8 py-3 text-lg border font-semibold text-black bg-[#f5a623] w-full'>Найти и забронировать</button>
 						</div>
 					</div>
-				</form>
+				</motion.form>
 
 
 				{/* Секция предложений */}
 				<div className="min-h-screen bg-[#0f1629] px-4 py-25 lg:px-8 lg:py-30">
-					<div className="max-w-5xl py-8 mx-auto text-center mb-5 lg:mb-6">
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.5 }}
+						className="max-w-5xl py-8 mx-auto text-center mb-5 lg:mb-6"
+					>
 						<h1 className='text-white font-semibold text-5xl'>Лучшие места</h1>
 						<p className='text-zinc-400 mt-4'>Подобранные пространства для вашей следующей встречи или проекта</p>
-					</div>
+					</motion.div>
 					<div className="grid gap-4 justify-center sm:grid-cols-2 lg:grid-cols-3 mx-auto max-w-[1280px]">
-						{AllListings.map((l: Listing) => (
-							<div key={l.id} className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto">
+						{AllListings.map((l: Listing, i: number) => (
+							<motion.div
+								key={l.id}
+								initial={{ opacity: 0, y: 30 }}
+								whileInView={{ opacity: 1, y: 0 }}
+								viewport={{ once: true }}
+								transition={{ duration: 0.4, delay: i * 0.1 }}
+								whileHover={{ y: -5, transition: { duration: 0.2 } }}
+								onClick={() => navigate(`/listing/${l.id}`)}
+								className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto cursor-pointer"
+							>
 								{/* Картинка */}
 								<div className="w-full h-70 overflow-hidden">
 									<img src={l.image_url} alt="space" className="w-full h-full object-cover" />
@@ -128,31 +164,55 @@ export default function MainPage() {
 									</div>
 
 								</div>
-							</div>
+							</motion.div>
 						))}
 					</div>
 				</div>
 				<section>
-					<div className="content flex mt-20 text-white flex-col text-center">
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ duration: 0.5 }}
+						className="content flex mt-20 text-white flex-col text-center"
+					>
 						<h1 className='text-4xl font-semibold' >Как это работает</h1>
 						<p className='text-zinc-500 mt-4' >Забронируйте идеальное пространство в три простых шага</p>
-					</div>
+					</motion.div>
 					<div className="steps flex flex-col md:flex-row gap-8 justify-center items-center max-w-5xl mx-auto mt-10">
-						<div className="step flex flex-col items-center gap-4 mt-10">
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.4, delay: 0 }}
+							className="step flex flex-col items-center gap-4 mt-10"
+						>
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={lupa} alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>1. Поиск</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Просматривайте сотни проверенных пространств, подобранных под ваши нужды и местоположение</p>
-						</div>
-						<div className="step flex flex-col items-center gap-4 mt-10">
+						</motion.div>
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.4, delay: 0.15 }}
+							className="step flex flex-col items-center gap-4 mt-10"
+						>
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={checkmark} alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>2. Выбор</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Сравнивайте удобства, цены и доступность, чтобы найти идеальное рабочее пространство</p>
-						</div>
-						<div className="step flex flex-col items-center gap-4 mt-10">
+						</motion.div>
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.4, delay: 0.3 }}
+							className="step flex flex-col items-center gap-4 mt-10"
+						>
 							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={time} alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>3. Бронирование</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Мгновенное подтверждение и удобная регистрация. Начните работать сразу</p>
-						</div>
+						</motion.div>
 					</div>
 				</section>
 				{/* Сюда загружать отзывы */}
@@ -200,12 +260,14 @@ export default function MainPage() {
 						<p className='text-zinc-500 mt-4 mx-20' >Присоединяйтесь к тысячам профессионалов, которые доверяют BookIt</p>
 					</div>
 					<div className="start-bth mx-auto flex justify-center py-10">
-						<button
+						<motion.button
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
 							onClick={() => navigate('/booking')}
-							className="bg-amber-500 hover:bg-amber-600 text-black font-semibold py-4 px-8 rounded-xl text-lg transition active:scale-95 shadow-md shadow-amber-400/50"
+							className="bg-amber-500 hover:bg-amber-600 text-black font-semibold py-4 px-8 rounded-xl text-lg transition shadow-md shadow-amber-400/50"
 						>
 							Начать бронирование
-						</button>
+						</motion.button>
 					</div>
 				</footer>
 

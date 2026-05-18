@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import API from '../API/api'
+import { useAuth } from '../context/AuthContext'
 
 interface Listing {
 	id: number
@@ -24,12 +27,15 @@ const amenityIcons: Record<string, string> = {
 }
 
 export default function BookingPage() {
+	const navigate = useNavigate()
+	const { user } = useAuth()
 	const [listings, setListings] = useState<Listing[]>([])
 	const [priceRange, setPriceRange] = useState(10000)
 	const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
 	const [searchTerm, setSearchTerm] = useState('')
 	const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
 	const [loading, setLoading] = useState(true)
+	const isAdmin = user?.role === 'admin'
 
 	useEffect(() => {
 		API.get('/listings/')
@@ -71,7 +77,12 @@ export default function BookingPage() {
 	return (
 		<div className="min-h-screen bg-[#0f1629]">
 			{/* Page header */}
-			<div className="px-6 pt-8 pb-4 md:px-12">
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.4 }}
+				className="px-6 pt-8 pb-4 md:px-12"
+			>
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-white text-3xl font-bold">Бронирование</h1>
@@ -96,12 +107,17 @@ export default function BookingPage() {
 						</button>
 					</div>
 				</div>
-			</div>
+			</motion.div>
 
 			{/* Main content */}
 			<div className="flex flex-col md:flex-row gap-6 px-6 pb-12 md:px-12">
 				{/* Filters sidebar */}
-				<div className="w-full md:w-72 shrink-0">
+				<motion.div
+					initial={{ opacity: 0, x: -30 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ duration: 0.5, delay: 0.1 }}
+					className="w-full md:w-72 shrink-0"
+				>
 					<div className="bg-[#1a2035] rounded-2xl border border-white/10 p-6">
 						<div className="flex items-center gap-2 mb-6">
 							<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#f5a623]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -167,21 +183,54 @@ export default function BookingPage() {
 							Сбросить фильтры
 						</button>
 					</div>
-				</div>
+				</motion.div>
 
 				{/* Cards */}
 				<div className="flex-1">
 					{loading ? (
 						<div className="text-zinc-400 text-center py-20">Загрузка...</div>
 					) : filtered.length === 0 ? (
-						<div className="text-zinc-400 text-center py-20">Ничего не найдено</div>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							className="text-zinc-400 text-center py-20"
+						>
+							Ничего не найдено
+						</motion.div>
 					) : (
 						<div className="grid gap-6 sm:grid-cols-2">
-							{filtered.map((l) => (
-								<div key={l.id} className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10">
+							{filtered.map((l, i) => (
+								<motion.div
+									key={l.id}
+									initial={{ opacity: 0, y: 30 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.4, delay: i * 0.08 }}
+									whileHover={{ y: -5, transition: { duration: 0.2 } }}
+									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 cursor-pointer relative group"
+									onClick={() => navigate(`/listing/${l.id}`)}
+								>
+									{/* Admin pencil */}
+									{isAdmin && (
+										<motion.button
+											initial={{ opacity: 0, scale: 0.8 }}
+											animate={{ opacity: 1, scale: 1 }}
+											whileHover={{ scale: 1.15 }}
+											whileTap={{ scale: 0.9 }}
+											onClick={(e) => {
+												e.stopPropagation()
+												navigate(`/listing/${l.id}`)
+											}}
+											className="absolute top-3 right-3 z-10 bg-[#f5a623] text-[#0f1629] p-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+											title="Редактировать"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+												<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+											</svg>
+										</motion.button>
+									)}
 									{l.image_url && (
 										<div className="w-full h-52 overflow-hidden">
-											<img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
+											<img src={l.image_url} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
 										</div>
 									)}
 									<div className="p-5 flex flex-col gap-2">
@@ -215,12 +264,16 @@ export default function BookingPage() {
 												<span className="text-[#f5a623]">€{l.price_per_night}</span>
 												<span className="text-zinc-400 text-xs font-normal">/ночь</span>
 											</div>
-											<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
+											<motion.button
+												whileHover={{ scale: 1.05 }}
+												whileTap={{ scale: 0.95 }}
+												className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95"
+											>
 												Забронировать
-											</button>
+											</motion.button>
 										</div>
 									</div>
-								</div>
+								</motion.div>
 							))}
 						</div>
 					)}
