@@ -1,88 +1,84 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import API from '../API/api'
 
 export interface User {
-	email: string
-	name: string
-	role: 'admin' | 'user'
+  id: number
+  email: string
+  full_name: string
+  role: 'admin' | 'user'
 }
 
 interface AuthContextType {
-	user: User | null
-	login: (email: string, password: string) => string | null
-	register: (name: string, email: string, password: string) => string | null
-	logout: () => void
+  user: User | null
+  token: string | null
+  login: (email: string, password: string) => Promise<string | null>
+  register: (name: string, email: string, password: string) => Promise<string | null>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-const ADMIN_EMAIL = 'admin@bookit.com'
-const ADMIN_PASSWORD = 'admin123'
-
-function getUsers(): { email: string; name: string; password: string; role: 'admin' | 'user' }[] {
-	const raw = localStorage.getItem('bookit_users')
-	if (!raw) return []
-	return JSON.parse(raw)
-}
-
-function saveUsers(users: { email: string; name: string; password: string; role: 'admin' | 'user' }[]) {
-	localStorage.setItem('bookit_users', JSON.stringify(users))
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
 
-	useEffect(() => {
-		const saved = localStorage.getItem('bookit_user')
-		if (saved) setUser(JSON.parse(saved))
-	}, [])
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token')
+    const savedUser = localStorage.getItem('user')
+    if (savedToken && savedUser) {
+      setToken(savedToken)
+      setUser(JSON.parse(savedUser))
+    }
+  }, [])
 
-	function login(email: string, password: string): string | null {
-		if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-			const u: User = { email, name: 'Admin', role: 'admin' }
-			setUser(u)
-			localStorage.setItem('bookit_user', JSON.stringify(u))
-			return null
-		}
+  async function register(name: string, email: string, password: string): Promise<string | null> {
+    try {
+      await API.post('/auth/register', { full_name: name, email, password })
+      return await login(email, password)
+    } catch (e: any) {
+      return e.response?.data?.detail || 'Ошибка регистрации'
+    }
+  }
 
-		const users = getUsers()
-		const found = users.find((u) => u.email === email && u.password === password)
-		if (!found) return 'Неверный email или пароль'
+  async function login(email: string, password: string): Promise<string | null> {
+    try {
+      const form = new FormData()
+      form.append('username', email)
+      form.append('password', password)
 
-		const u: User = { email: found.email, name: found.name, role: found.role }
-		setUser(u)
-		localStorage.setItem('bookit_user', JSON.stringify(u))
-		return null
-	}
+      const { data } = await API.post('/auth/login', form)
+      const { access_token } = data
 
-	function register(name: string, email: string, password: string): string | null {
-		if (email === ADMIN_EMAIL) return 'Этот email уже занят'
+      const { data: userData } = await API.get('/auth/me', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      })
 
-		const users = getUsers()
-		if (users.some((u) => u.email === email)) return 'Этот email уже занят'
+      setToken(access_token)
+      setUser(userData)
+      localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(userData))
+      return null
+    } catch (e: any) {
+      return e.response?.data?.detail || 'Неверный email или пароль'
+    }
+  }
 
-		users.push({ email, name, password, role: 'user' })
-		saveUsers(users)
+  function logout() {
+    setUser(null)
+    setToken(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  }
 
-		const u: User = { email, name, role: 'user' }
-		setUser(u)
-		localStorage.setItem('bookit_user', JSON.stringify(u))
-		return null
-	}
-
-	function logout() {
-		setUser(null)
-		localStorage.removeItem('bookit_user')
-	}
-
-	return (
-		<AuthContext.Provider value={{ user, login, register, logout }}>
-			{children}
-		</AuthContext.Provider>
-	)
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
-	const ctx = useContext(AuthContext)
-	if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-	return ctx
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

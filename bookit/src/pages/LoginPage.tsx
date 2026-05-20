@@ -11,15 +11,15 @@ export default function LoginPage() {
 	const { login } = useAuth()
 	const navigate = useNavigate()
 
-	function handleSubmit(e: React.FormEvent) {
-		e.preventDefault()
-		const err = login(email, password)
-		if (err) {
-			setError(err)
-		} else {
-			navigate('/')
-		}
-	}
+	async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const err = await login(email, password)
+    if (err) {
+        setError(err)
+    } else {
+        navigate('/')
+    }
+}
 
 	return (
 		<div className="min-h-screen bg-[#0f1629] flex items-center justify-center px-4">

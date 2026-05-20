@@ -13,17 +13,18 @@ export default function RegisterPage() {
 	const { register } = useAuth()
 	const navigate = useNavigate()
 
-	function handleSubmit(e: React.FormEvent) {
+	// стало
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault()
 		if (password !== confirmPassword) {
 			setError('Пароли не совпадают')
-			return 
+			return
 		}
 		if (password.length < 6) {
 			setError('Пароль должен быть не менее 6 символов')
 			return
 		}
-		const err = register(name, email, password)
+		const err = await register(name, email, password)
 		if (err) {
 			setError(err)
 		} else {

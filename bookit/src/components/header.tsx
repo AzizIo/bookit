@@ -34,7 +34,7 @@ export default function Header() {
 						{user ? (
 							<>
 								<Link to="/user">
-									<div className="acc-name text-zinc-400">{user.name}</div>
+									<div className="acc-name text-zinc-400">{user?.full_name}</div>
 								</Link>
 								<div className="acc-image bg-gray-500 rounded-full px-2 py-2 w-9 h-9"><img src={avatar} alt="Avatar" /></div>
 								<button

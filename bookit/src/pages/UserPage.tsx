@@ -1,13 +1,29 @@
 import kaleidoscope from '../assets/kaleidoscope.png'
 import heart from '../assets/heart.png'
 import Bug from '../components/bug.tsx'
-import { useState } from 'react'
-export default function UserPage() {
+import { useState, useEffect } from 'react'
+import API from '../API/api.ts'
+import { useAuth } from '../context/AuthContext.tsx'
+
+export default  function UserPage() {
     const [activeTab, setActiveTab] = useState('upcoming')
+     const { user } = useAuth()
+     const [userData, setUserData] = useState(null)
+    
+     useEffect(() => {
+        async function fetchUser() {
+            const { data } = await API.get('/auth/me')
+            setUserData(data)
+        }
+        fetchUser()
+    }, []) // [] означает — выполнить один раз при загрузке страницы
+
+    
     return (
         <>
             <div className="min-h-screen bg-[#0f1629] ">
                 <Bug />
+                
 
                 <div className="di">
                     <div className="text-5xl tracking-wide text-white font-semibold pt-12 mx-6">My Dashboard</div>
@@ -17,27 +33,27 @@ export default function UserPage() {
                     <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
                         <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
                         {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">12</div>
+                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.total_bookings || 0}</div>
                         <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Total Bookings</p>
                     </div>
                     <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
                         {/* картинку сгенерировать потом */}
                         <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
                         {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">48</div>
+                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.total_hours_booked || 0}</div>
                         <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Hours Booked</p>
                     </div>
                     <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
                         <div className=""><img className="  w-18 h-18 object-cover" src={heart} alt="Heart" /></div>
                         {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">5</div>
+                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.favorite_listings?.length || 0}</div>
                         <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Favorite Spaces</p>
                     </div>
                     <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
                         {/* картинку сгенерировать потом */}
                         <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
                         {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">4.9</div>
+                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.rating?.toFixed(1) || 0}</div>
                         <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Average Rating</p>
                     </div>
                 </div>
