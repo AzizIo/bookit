@@ -10,7 +10,6 @@ export default function LoginPage() {
 	const [error, setError] = useState('')
 	const { login } = useAuth()
 	const navigate = useNavigate()
-
 	async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const err = await login(email, password)

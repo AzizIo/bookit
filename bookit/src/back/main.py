@@ -195,5 +195,22 @@ def delete_listing(listing_id: int, db: Session = Depends(get_db)):
 @app.get("/users/rating", response_model=list[UserOut])
 def get_users_stat(db: Session = Depends(get_db)):
     return db.query(User).order_by(User.rating.desc()).all()
+
+# эндпоинт для добавления/удаления из избранного
+@app.post("/users/favorites/{listing_id}")
+def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    favorites = set(current_user.favorite_listings.split(',')) if current_user.favorite_listings else set()
+    favorites.discard('')  # убираем пустые строки
+    
+    if str(listing_id) in favorites:
+        favorites.remove(str(listing_id))  # убираем если уже есть
+        added = False
+    else:
+        favorites.add(str(listing_id))  # добавляем если нет
+        added = True
+    
+    current_user.favorite_listings = ','.join(favorites)
+    db.commit()
+    return {"added": added, "favorites": current_user.favorite_listings}
     
     

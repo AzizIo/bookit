@@ -4,13 +4,14 @@ import Bug from '../components/bug.tsx'
 import { useState, useEffect } from 'react'
 import API from '../API/api.ts'
 import { useAuth } from '../context/AuthContext.tsx'
+import GlowCard from '../components/GlowCard.tsx'
 
-export default  function UserPage() {
+export default function UserPage() {
+    const [favorites, setFavorites] = useState<Listing[]>([])
     const [activeTab, setActiveTab] = useState('upcoming')
-     const { user } = useAuth()
-     const [userData, setUserData] = useState(null)
-    
-     useEffect(() => {
+    const { user } = useAuth()
+    const [userData, setUserData] = useState(null)
+    useEffect(() => {
         async function fetchUser() {
             const { data } = await API.get('/auth/me')
             setUserData(data)
@@ -18,12 +19,23 @@ export default  function UserPage() {
         fetchUser()
     }, []) // [] означает — выполнить один раз при загрузке страницы
 
-    
+    useEffect(() => {
+        async function fetchFavorites() {
+            const { data: freshUser } = await API.get('/auth/me')  // свежие данные с БД
+            if (!freshUser?.favorite_listings) return
+
+            const ids = freshUser.favorite_listings.split(',').filter(Boolean).map(Number)
+            const results = await Promise.all(ids.map(id => API.get(`/listings/${id}`)))
+            setFavorites(results.map(res => res.data))
+        }
+        fetchFavorites()
+    }, [])
+
     return (
         <>
             <div className="min-h-screen bg-[#0f1629] ">
                 <Bug />
-                
+
 
                 <div className="di">
                     <div className="text-5xl tracking-wide text-white font-semibold pt-12 mx-6">My Dashboard</div>
@@ -59,50 +71,92 @@ export default  function UserPage() {
                 </div>
                 <div className="div md:flex ">
 
-                <div className="swaper mx-4 mt-12  md:max-w-60 md:mt-12 md:ml-6 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                    <div className="buttons flex flex-col  text-left md:flex-col ">
-                        {/* /* Кнопки для переключения между разделами */ }
-                        {/* иконки потом сделать нормально */}
-                        <button 
-                            className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'upcoming' ? 'bg-[#f5a623] text-black' : ''}`}
-                            onClick={() => setActiveTab('upcoming')}
-                        >
-                            📅 Upcoming
-                        </button>
-                        <button 
-                            className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'past' ? 'bg-[#f5a623] text-black' : ''}`}
-                            onClick={() => setActiveTab('past')}
-                        >
-                            ⏳ Past
-                        </button>
-                        <button 
-                            className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'favorite' ? 'bg-[#f5a623] text-black' : ''}`}
-                            onClick={() => setActiveTab('favorite')}
-                        >
-                            ⭐ Favorite
-                        </button>
-                        <button 
-                            className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'travel' ? 'bg-[#f5a623] text-black' : ''}`}
-                            onClick={() => setActiveTab('travel')}
-                        >
-                            🗺️ Travel Map
-                        </button>
-                        <button 
-                            className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'settings' ? 'bg-[#f5a623] text-black' : ''}`}
-                            onClick={() => setActiveTab('settings')}
-                        >
-                            ⚙️ Settings
-                        </button>
+                    <div className="swaper mx-4 mt-12  md:max-w-60 md:mt-12 md:ml-6 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
+                        <div className="buttons flex flex-col  text-left md:flex-col ">
+                            {/* /* Кнопки для переключения между разделами */}
+                            {/* иконки потом сделать нормально */}
+                            <button
+                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'upcoming' ? 'bg-[#f5a623] text-black' : ''}`}
+                                onClick={() => setActiveTab('upcoming')}
+                            >
+                                📅 Upcoming
+                            </button>
+                            <button
+                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'past' ? 'bg-[#f5a623] text-black' : ''}`}
+                                onClick={() => setActiveTab('past')}
+                            >
+                                ⏳ Past
+                            </button>
+                            <button
+                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'favorite' ? 'bg-[#f5a623] text-black' : ''}`}
+                                onClick={() => setActiveTab('favorite')}
+                            >
+                                ⭐ Favorite
+                                {/* нужно будет сделать это в отдельную таблицу */}
+                            </button>
+                            <button
+                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'travel' ? 'bg-[#f5a623] text-black' : ''}`}
+                                onClick={() => setActiveTab('travel')}
+                            >
+                                🗺️ Travel Map
+                            </button>
+                            <button
+                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'settings' ? 'bg-[#f5a623] text-black' : ''}`}
+                                onClick={() => setActiveTab('settings')}
+                            >
+                                ⚙️ Settings
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div className="content mt-6">
-                    {/* Здесь будет отображаться контент в зависимости от выбранного раздела */}
-                    {activeTab === 'upcoming' && <div className="text-white text-lg">Your upcoming bookings will appear here.</div>}
-                    {activeTab === 'past' && <div className="text-white text-lg">Your past bookings will appear here.</div>}
-                    {activeTab === 'favorite' && <div className="text-white text-lg">Your favorite spaces will appear here.</div>}
-                    {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
-                    {activeTab === 'settings' && <div className="text-white text-lg">Your account settings will appear here.</div>}
-                </div>
+                    <div className="content mt-6">
+                        {/* Здесь будет отображаться контент в зависимости от выбранного раздела */}
+                        {activeTab === 'upcoming' && <div className="text-white text-lg">Your upcoming bookings will appear here.</div>}
+                        {activeTab === 'past' && <div className="text-white text-lg">Your past bookings will appear here.</div>}
+                        { activeTab === 'favorite' && (
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {favorites.length === 0
+                                    ? <p className="text-zinc-400">Нет избранных мест</p>
+                                    : favorites.map((l) => (
+                                        <GlowCard
+                                            key={l.id}
+                                            onClick={() => navigate(`/listing/${l.id}`)}
+                                            className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 cursor-pointer"
+                                        >
+                                            <div className="w-full h-48 overflow-hidden">
+                                                <img src={l.image_url} alt={l.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                            </div>
+                                            <div className="p-4 flex flex-col gap-2">
+                                                <h2 className="text-white text-base font-semibold">{l.title}</h2>
+                                                <div className="flex items-center gap-1 text-[#8b93a8] text-xs">
+                                                    <span>📍</span>
+                                                    <span>{l.city}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {l.amenities.split(',').map((item, i) => (
+                                                        <span key={i} className="text-[#8b93a8] text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5">
+                                                            {item.trim()}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <hr className="border-white/10 mt-1" />
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <div>
+                                                        <span className="text-[#f5a623] text-lg font-bold">€{l.price_per_night}</span>
+                                                        <span className="text-[#8b93a8] text-xs">/ночь</span>
+                                                    </div>
+                                                    <button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
+                                                        Забронировать
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </GlowCard>
+                                    ))
+                                }
+                            </div>
+                        )}
+                        {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
+                        {activeTab === 'settings' && <div className="text-white text-lg">Your account settings will appear here.</div>}
+                    </div>
                 </div>
             </div>
         </>

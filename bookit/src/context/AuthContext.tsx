@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import API from '../API/api'
 
+const ADMIN_EMAIL = 'admin@bookit.com'
+
 export interface User {
   id: number
   email: string
@@ -52,6 +54,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: userData } = await API.get('/auth/me', {
         headers: { Authorization: `Bearer ${access_token}` }
       })
+
+      // хардкод роли
+      userData.role = userData.email === ADMIN_EMAIL ? 'admin' : 'user'
 
       setToken(access_token)
       setUser(userData)
