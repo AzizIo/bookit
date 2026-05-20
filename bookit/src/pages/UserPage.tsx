@@ -1,7 +1,7 @@
 import kaleidoscope from '../assets/kaleidoscope.png'
 import heart from '../assets/heart.png'
 import Bug from '../components/bug.tsx'
-import { useState, useEffect} from 'react'
+import { useState, useEffect } from 'react'
 import API from '../API/api.ts'
 import { useAuth } from '../context/AuthContext.tsx'
 import GlowCard from '../components/GlowCard.tsx'
@@ -10,13 +10,18 @@ import { useNavigate } from 'react-router-dom'
 export default function UserPage() {
     const [favorites, setFavorites] = useState<Listing[]>([])
     const [activeTab, setActiveTab] = useState('upcoming')
+    
     const { user } = useAuth()
     const navigate = useNavigate()
     const [userData, setUserData] = useState(null)
+    const [userEmail, setUserEmail] = useState('')
+    const [userName, setUserName] = useState('')
     useEffect(() => {
         async function fetchUser() {
             const { data } = await API.get('/auth/me')
             setUserData(data)
+            setUserEmail(data.email)
+            setUserName(data.full_name)
         }
         fetchUser()
     }, []) // [] означает — выполнить один раз при загрузке страницы
@@ -32,7 +37,7 @@ export default function UserPage() {
         }
         fetchFavorites()
     }, [])
-
+    
     return (
         <>
             <div className="min-h-screen bg-[#0f1629] ">
@@ -114,7 +119,7 @@ export default function UserPage() {
                         {/* Здесь будет отображаться контент в зависимости от выбранного раздела */}
                         {activeTab === 'upcoming' && <div className="text-white text-lg">Your upcoming bookings will appear here.</div>}
                         {activeTab === 'past' && <div className="text-white text-lg">Your past bookings will appear here.</div>}
-                        { activeTab === 'favorite' && (
+                        {activeTab === 'favorite' && (
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {favorites.length === 0
                                     ? <p className="text-zinc-400">Нет избранных мест</p>
@@ -157,7 +162,20 @@ export default function UserPage() {
                             </div>
                         )}
                         {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
-                        {activeTab === 'settings' && <div className="text-white text-lg">Your account settings will appear here.</div>}
+                        {activeTab === 'settings' && <div className="text-white text-lg">
+                            <div className='font-semibold m-8 text-2xl'>Settings</div>
+                            <div className=' bg-white/5 m-8 border border-gray-700 rounded-xl px-3 py-3 md: min-w-220' >
+                                <div className='p-4' >Profile information</div>
+                                <div className='flex flex-col px-4' >
+                                    <label className='px-4 mt-4 block' htmlFor="fullName">Full Name</label>
+                                    <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userName} type="text" id="fullName" />
+                                </div>
+                                <div className='flex flex-col px-4 pb-8' >
+                                    <label htmlFor="email" className='px-4 mt-4 block'>Email</label>
+                                    <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userEmail} type="email" id="email" />
+                                </div>
+                            </div>
+                        </div>}
                     </div>
                 </div>
             </div>
