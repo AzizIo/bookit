@@ -1,15 +1,17 @@
 import kaleidoscope from '../assets/kaleidoscope.png'
 import heart from '../assets/heart.png'
 import Bug from '../components/bug.tsx'
-import { useState, useEffect } from 'react'
+import { useState, useEffect} from 'react'
 import API from '../API/api.ts'
 import { useAuth } from '../context/AuthContext.tsx'
 import GlowCard from '../components/GlowCard.tsx'
+import { useNavigate } from 'react-router-dom'
 
 export default function UserPage() {
     const [favorites, setFavorites] = useState<Listing[]>([])
     const [activeTab, setActiveTab] = useState('upcoming')
     const { user } = useAuth()
+    const navigate = useNavigate()
     const [userData, setUserData] = useState(null)
     useEffect(() => {
         async function fetchUser() {

@@ -61,11 +61,15 @@ export default function ListingPage() {
 
 	// проверяем при загрузке
 	useEffect(() => {
-		if (user && listing) {
-			const favs = user.favorite_listings?.split(',') || []
-			setIsFavorite(favs.includes(String(listing.id)))
-		}
-	}, [user, listing])
+    async function checkFavorite() {
+        if (!listing) return
+        const { data: freshUser } = await API.get('/auth/me')
+        const favs = freshUser.favorite_listings?.split(',') || []
+        setIsFavorite(favs.includes(String(listing.id)))
+    }
+    checkFavorite()
+}, [listing])
+
 
 	async function toggleFavorite() {
 		if (!user) return navigate('/login')
