@@ -21,6 +21,20 @@ SessionLocal = sessionmaker(bind=engine)
 class Base(DeclarativeBase):
     pass
 
+### Новая таблица пользователя, Имя Фио Почта Пароль Места которые он бронировал Суммарное кол-во часов Любимые места Рейтинг
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    full_name = Column(String)
+    email = Column(String, unique=True)
+    password = Column(String)
+    booking_history = Column(String, default="")  # Храним как "1:2,3:4" - ID места : кол-во часов
+    total_hours_booked = Column(Float, default=0.0)  # Суммарное кол-во часов
+    favorite_listings = Column(String, default="")   # Храним как "1,3,5" - ID любимых мест
+    rating = Column(Float, default=0.0)    # Рейтинг пользователя
+
+
 class Listing(Base):
     __tablename__ = "listings"
     id              = Column(Integer, primary_key=True)

@@ -17,7 +17,7 @@ export default function RegisterPage() {
 		e.preventDefault()
 		if (password !== confirmPassword) {
 			setError('Пароли не совпадают')
-			return
+			return 
 		}
 		if (password.length < 6) {
 			setError('Пароль должен быть не менее 6 символов')

@@ -41,7 +41,9 @@ export default function UserPage() {
                         <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Average Rating</p>
                     </div>
                 </div>
-                <div className="swaper mx-4 md:max-w-60 md:mt-12 md:ml-6 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
+                <div className="div md:flex ">
+
+                <div className="swaper mx-4 mt-12  md:max-w-60 md:mt-12 md:ml-6 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
                     <div className="buttons flex flex-col  text-left md:flex-col ">
                         {/* /* Кнопки для переключения между разделами */ }
                         {/* иконки потом сделать нормально */}
@@ -76,6 +78,15 @@ export default function UserPage() {
                             ⚙️ Settings
                         </button>
                     </div>
+                </div>
+                <div className="content mt-6">
+                    {/* Здесь будет отображаться контент в зависимости от выбранного раздела */}
+                    {activeTab === 'upcoming' && <div className="text-white text-lg">Your upcoming bookings will appear here.</div>}
+                    {activeTab === 'past' && <div className="text-white text-lg">Your past bookings will appear here.</div>}
+                    {activeTab === 'favorite' && <div className="text-white text-lg">Your favorite spaces will appear here.</div>}
+                    {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
+                    {activeTab === 'settings' && <div className="text-white text-lg">Your account settings will appear here.</div>}
+                </div>
                 </div>
             </div>
         </>
