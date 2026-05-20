@@ -213,4 +213,14 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
     
-    
+@app.put("/users/me")
+def update_user_info(full_name: Optional[str] = None, email: Optional[str] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if full_name:
+        current_user.full_name = full_name
+    if email:
+        if db.query(User).filter(User.email == email).first():
+            raise HTTPException(status_code=400, detail="Email already registered")
+        current_user.email = email
+    db.commit()
+    db.refresh(current_user)
+    return current_user

@@ -10,13 +10,16 @@ export interface User {
   role: 'admin' | 'user'
 }
 
+
 interface AuthContextType {
   user: User | null
   token: string | null
   login: (email: string, password: string) => Promise<string | null>
   register: (name: string, email: string, password: string) => Promise<string | null>
   logout: () => void
+  setUser: (user: User) => void
 }
+
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
@@ -76,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   )

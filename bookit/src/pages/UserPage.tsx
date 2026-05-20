@@ -7,15 +7,33 @@ import { useAuth } from '../context/AuthContext.tsx'
 import GlowCard from '../components/GlowCard.tsx'
 import { useNavigate } from 'react-router-dom'
 
+
 export default function UserPage() {
+    const { user, setUser } = useAuth()
     const [favorites, setFavorites] = useState<Listing[]>([])
     const [activeTab, setActiveTab] = useState('upcoming')
-    
-    const { user } = useAuth()
+
     const navigate = useNavigate()
     const [userData, setUserData] = useState(null)
     const [userEmail, setUserEmail] = useState('')
     const [userName, setUserName] = useState('')
+    async function handleUpdate() {
+        try {
+            const res = await API.put('/users/me', { full_name: userName, email: userEmail })
+            const updatedUser: User = {
+                ...user!,
+                full_name: res.data.full_name,
+                email: res.data.email,
+            }
+            localStorage.setItem('user', JSON.stringify(updatedUser))
+            setUser(updatedUser)
+            setUserName(updatedUser.full_name)
+            setUserEmail(updatedUser.email)
+            alert('Сохранено!')
+        } catch (e: any) {
+            alert(e.response?.data?.detail || 'Ошибка')
+        }
+    }
     useEffect(() => {
         async function fetchUser() {
             const { data } = await API.get('/auth/me')
@@ -37,7 +55,7 @@ export default function UserPage() {
         }
         fetchFavorites()
     }, [])
-    
+
     return (
         <>
             <div className="min-h-screen bg-[#0f1629] ">
@@ -163,17 +181,24 @@ export default function UserPage() {
                         )}
                         {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
                         {activeTab === 'settings' && <div className="text-white text-lg">
-                            <div className='font-semibold m-8 text-2xl'>Settings</div>
+                            <div className='font-bold m-8 text-2xl'>Settings</div>
                             <div className=' bg-white/5 m-8 border border-gray-700 rounded-xl px-3 py-3 md: min-w-220' >
-                                <div className='p-4' >Profile information</div>
-                                <div className='flex flex-col px-4' >
-                                    <label className='px-4 mt-4 block' htmlFor="fullName">Full Name</label>
-                                    <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userName} type="text" id="fullName" />
-                                </div>
-                                <div className='flex flex-col px-4 pb-8' >
-                                    <label htmlFor="email" className='px-4 mt-4 block'>Email</label>
-                                    <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userEmail} type="email" id="email" />
-                                </div>
+                                <div className='p-4 font-semibold' >Profile information</div>
+                                <form onSubmit={(e) => { e.preventDefault(); handleUpdate() }} className='flex flex-col gap-4'>
+                                    <div className='flex flex-col px-4'>
+                                        <label className='px-4 mt-4 block' htmlFor="fullName">Full Name</label>
+                                        <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userName} onChange={(e) => setUserName(e.target.value)} type="text" id="fullName" />
+                                    </div>
+                                    <div className='flex flex-col px-4 pb-8'>
+                                        <label htmlFor="email" className='px-4 mt-4 block'>Email</label>
+                                        <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userEmail} onChange={(e) => setUserEmail(e.target.value)} type="email" id="email" />
+                                    </div>
+                                    <div className='mx-6'>
+                                        <button type="submit" className='bg-[#f5a623] text-[#0f1629] text-xl font-bold px-8 py-4 rounded-xl hover:bg-[#e09610] transition active:scale-95'>
+                                            Сохранить
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>}
                     </div>
