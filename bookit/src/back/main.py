@@ -9,7 +9,7 @@ from jose import jwt, JWTError
 import bcrypt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "замени-на-рандомную-строку"
+SECRET_KEY = "asdasdjj"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
@@ -87,7 +87,9 @@ class ListingCreate(BaseModel):
 class ListingOut(ListingCreate):
     id: int
     model_config = {"from_attributes": True}
-
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
 # --- Хелперы ---
 def get_db():
     db = SessionLocal()
@@ -213,14 +215,15 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
     
-@app.put("/users/me")
-def update_user_info(full_name: Optional[str] = None, email: Optional[str] = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if full_name:
-        current_user.full_name = full_name
-    if email:
-        if db.query(User).filter(User.email == email).first():
+@app.put("/users/me", response_model=UserOut)
+def update_user_info(data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if data.full_name:
+        current_user.full_name = data.full_name
+    if data.email:
+        existing = db.query(User).filter(User.email == data.email, User.id != current_user.id).first()
+        if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
-        current_user.email = email
+        current_user.email = data.email
     db.commit()
     db.refresh(current_user)
     return current_user

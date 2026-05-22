@@ -10,7 +10,6 @@ export interface User {
   role: 'admin' | 'user'
 }
 
-
 interface AuthContextType {
   user: User | null
   token: string | null
@@ -20,19 +19,24 @@ interface AuthContextType {
   setUser: (user: User) => void
 }
 
-
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, _setUser] = useState<User | null>(null)  // ← переименовали
   const [token, setToken] = useState<string | null>(null)
+
+  // ↓ новая функция которая меняет И state И localStorage
+  function setUser(user: User) {
+    _setUser(user)
+    localStorage.setItem('user', JSON.stringify(user))
+  }
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token')
     const savedUser = localStorage.getItem('user')
     if (savedToken && savedUser) {
       setToken(savedToken)
-      setUser(JSON.parse(savedUser))
+      _setUser(JSON.parse(savedUser))  // ← здесь _setUser чтобы не писать в localStorage лишний раз
     }
   }, [])
 
@@ -50,21 +54,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const form = new FormData()
       form.append('username', email)
       form.append('password', password)
-
       const { data } = await API.post('/auth/login', form)
       const { access_token } = data
-
       const { data: userData } = await API.get('/auth/me', {
         headers: { Authorization: `Bearer ${access_token}` }
       })
-
-      // хардкод роли
       userData.role = userData.email === ADMIN_EMAIL ? 'admin' : 'user'
-
       setToken(access_token)
-      setUser(userData)
+      setUser(userData)  // ← теперь это наша функция, сохранит в localStorage
       localStorage.setItem('token', access_token)
-      localStorage.setItem('user', JSON.stringify(userData))
       return null
     } catch (e: any) {
       return e.response?.data?.detail || 'Неверный email или пароль'
@@ -72,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function logout() {
-    setUser(null)
+    _setUser(null)  // ← здесь _setUser
     setToken(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')

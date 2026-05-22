@@ -19,21 +19,27 @@ export default function UserPage() {
     const [userName, setUserName] = useState('')
     async function handleUpdate() {
         try {
+            console.log('1. Отправляем запрос:', { full_name: userName, email: userEmail })
             const res = await API.put('/users/me', { full_name: userName, email: userEmail })
+            console.log('2. Ответ от сервера:', res.data)
+
             const updatedUser: User = {
                 ...user!,
                 full_name: res.data.full_name,
                 email: res.data.email,
             }
-            localStorage.setItem('user', JSON.stringify(updatedUser))
+            console.log('3. updatedUser:', updatedUser)
+
             setUser(updatedUser)
-            setUserName(updatedUser.full_name)
-            setUserEmail(updatedUser.email)
+
+            console.log('4. localStorage после сохранения:', localStorage.getItem('user'))
             alert('Сохранено!')
         } catch (e: any) {
+            console.log('ОШИБКА:', e)
             alert(e.response?.data?.detail || 'Ошибка')
         }
-    }
+    }   
+
     useEffect(() => {
         async function fetchUser() {
             const { data } = await API.get('/auth/me')
