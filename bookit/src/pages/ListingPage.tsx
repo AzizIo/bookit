@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
 import GlowCard from '../components/GlowCard'
+import heart from '../assets/heart.png'
 
 interface Listing {
 	id: number
@@ -56,7 +57,25 @@ export default function ListingPage() {
 		max_guests: '', description: '', image_url: '', amenities: '',
 	})
 	const [saving, setSaving] = useState(false)
+	const [isFavorite, setIsFavorite] = useState(false)
 
+	// проверяем при загрузке
+	useEffect(() => {
+    async function checkFavorite() {
+        if (!listing) return
+        const { data: freshUser } = await API.get('/auth/me')
+        const favs = freshUser.favorite_listings?.split(',') || []
+        setIsFavorite(favs.includes(String(listing.id)))
+    }
+    checkFavorite()
+}, [listing])
+
+
+	async function toggleFavorite() {
+		if (!user) return navigate('/login')
+		const { data } = await API.post(`/users/favorites/${listing.id}`)
+		setIsFavorite(data.added)
+	}
 	useEffect(() => {
 		API.get(`/listings/${id}`)
 			.then((res) => {
@@ -349,20 +368,20 @@ export default function ListingPage() {
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.5 + i * 0.15 }}
 									>
-									<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
-										<div className="flex items-center justify-between mb-3">
-											<div>
-												<p className="text-white font-semibold text-sm">{review.name}</p>
-												<p className="text-zinc-500 text-xs">{review.date}</p>
+										<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
+											<div className="flex items-center justify-between mb-3">
+												<div>
+													<p className="text-white font-semibold text-sm">{review.name}</p>
+													<p className="text-zinc-500 text-xs">{review.date}</p>
+												</div>
+												<div className="flex gap-0.5">
+													{[...Array(review.rating)].map((_, j) => (
+														<span key={j} className="text-yellow-400 text-sm">★</span>
+													))}
+												</div>
 											</div>
-											<div className="flex gap-0.5">
-												{[...Array(review.rating)].map((_, j) => (
-													<span key={j} className="text-yellow-400 text-sm">★</span>
-												))}
-											</div>
-										</div>
-										<p className="text-zinc-400 text-sm">{review.text}</p>
-									</GlowCard>
+											<p className="text-zinc-400 text-sm">{review.text}</p>
+										</GlowCard>
 									</motion.div>
 								))}
 							</div>
@@ -414,6 +433,12 @@ export default function ListingPage() {
 
 							{/* Guests */}
 							<div className="mb-6">
+
+								<div className="add-favorite">
+									<button onClick={toggleFavorite}>
+										{isFavorite ? '❤️' : '🤍'} {isFavorite ? 'В избранном' : 'В избранное'}
+									</button>
+								</div>
 								<label className="text-white text-sm font-semibold block mb-2">Гости</label>
 								<div className="flex items-center gap-4">
 									<motion.button

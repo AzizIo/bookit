@@ -1,88 +1,90 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import API from '../API/api'
+
+const ADMIN_EMAIL = 'admin@bookit.com'
 
 export interface User {
-	email: string
-	name: string
-	role: 'admin' | 'user'
+  id: number
+  email: string
+  full_name: string
+  role: 'admin' | 'user'
 }
 
 interface AuthContextType {
-	user: User | null
-	login: (email: string, password: string) => string | null
-	register: (name: string, email: string, password: string) => string | null
-	logout: () => void
+  user: User | null
+  token: string | null
+  login: (email: string, password: string) => Promise<string | null>
+  register: (name: string, email: string, password: string) => Promise<string | null>
+  logout: () => void
+  setUser: (user: User) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-const ADMIN_EMAIL = 'admin@bookit.com'
-const ADMIN_PASSWORD = 'admin123'
-
-function getUsers(): { email: string; name: string; password: string; role: 'admin' | 'user' }[] {
-	const raw = localStorage.getItem('bookit_users')
-	if (!raw) return []
-	return JSON.parse(raw)
-}
-
-function saveUsers(users: { email: string; name: string; password: string; role: 'admin' | 'user' }[]) {
-	localStorage.setItem('bookit_users', JSON.stringify(users))
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [user, setUser] = useState<User | null>(null)
+  const [user, _setUser] = useState<User | null>(null)  // ← переименовали
+  const [token, setToken] = useState<string | null>(null)
 
-	useEffect(() => {
-		const saved = localStorage.getItem('bookit_user')
-		if (saved) setUser(JSON.parse(saved))
-	}, [])
+  // ↓ новая функция которая меняет И state И localStorage
+  function setUser(user: User) {
+    _setUser(user)
+    localStorage.setItem('user', JSON.stringify(user))
+  }
 
-	function login(email: string, password: string): string | null {
-		if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-			const u: User = { email, name: 'Admin', role: 'admin' }
-			setUser(u)
-			localStorage.setItem('bookit_user', JSON.stringify(u))
-			return null
-		}
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token')
+    const savedUser = localStorage.getItem('user')
+    if (savedToken && savedUser) {
+      setToken(savedToken)
+      _setUser(JSON.parse(savedUser))  // ← здесь _setUser чтобы не писать в localStorage лишний раз
+    }
+  }, [])
 
-		const users = getUsers()
-		const found = users.find((u) => u.email === email && u.password === password)
-		if (!found) return 'Неверный email или пароль'
+  async function register(name: string, email: string, password: string): Promise<string | null> {
+    try {
+      await API.post('/auth/register', { full_name: name, email, password })
+      return await login(email, password)
+    } catch (e: any) {
+      return e.response?.data?.detail || 'Ошибка регистрации'
+    }
+  }
 
-		const u: User = { email: found.email, name: found.name, role: found.role }
-		setUser(u)
-		localStorage.setItem('bookit_user', JSON.stringify(u))
-		return null
-	}
+  async function login(email: string, password: string): Promise<string | null> {
+    try {
+      const form = new FormData()
+      form.append('username', email)
+      form.append('password', password)
+      const { data } = await API.post('/auth/login', form)
+      const { access_token } = data
+      const { data: userData } = await API.get('/auth/me', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      })
+      userData.role = userData.email === ADMIN_EMAIL ? 'admin' : 'user'
+      setToken(access_token)
+      setUser(userData)  // ← теперь это наша функция, сохранит в localStorage
+      localStorage.setItem('token', access_token)
+      return null
+    } catch (e: any) {
+      return e.response?.data?.detail || 'Неверный email или пароль'
+    }
+  }
 
-	function register(name: string, email: string, password: string): string | null {
-		if (email === ADMIN_EMAIL) return 'Этот email уже занят'
+  function logout() {
+    _setUser(null)  // ← здесь _setUser
+    setToken(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  }
 
-		const users = getUsers()
-		if (users.some((u) => u.email === email)) return 'Этот email уже занят'
-
-		users.push({ email, name, password, role: 'user' })
-		saveUsers(users)
-
-		const u: User = { email, name, role: 'user' }
-		setUser(u)
-		localStorage.setItem('bookit_user', JSON.stringify(u))
-		return null
-	}
-
-	function logout() {
-		setUser(null)
-		localStorage.removeItem('bookit_user')
-	}
-
-	return (
-		<AuthContext.Provider value={{ user, login, register, logout }}>
-			{children}
-		</AuthContext.Provider>
-	)
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
-	const ctx = useContext(AuthContext)
-	if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-	return ctx
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }
