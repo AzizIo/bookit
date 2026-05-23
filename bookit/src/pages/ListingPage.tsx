@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
 import GlowCard from '../components/GlowCard'
-import heart from '../assets/heart.png'
+
 
 interface Listing {
 	id: number
@@ -73,7 +73,7 @@ export default function ListingPage() {
 
 	async function toggleFavorite() {
 		if (!user) return navigate('/login')
-		const { data } = await API.post(`/users/favorites/${listing.id}`)
+		const { data } = await API.post(`/users/favorites/${listing!.id}`)
 		setIsFavorite(data.added)
 	}
 	useEffect(() => {
@@ -434,11 +434,25 @@ export default function ListingPage() {
 							{/* Guests */}
 							<div className="mb-6">
 
-								<div className="add-favorite">
-									<button onClick={toggleFavorite}>
-										{isFavorite ? '❤️' : '🤍'} {isFavorite ? 'В избранном' : 'В избранное'}
-									</button>
-								</div>
+								<motion.button
+									whileHover={{ scale: 1.02 }}
+									whileTap={{ scale: 0.97 }}
+									onClick={toggleFavorite}
+									className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold tracking-wide uppercase transition-all duration-300 mb-4 ${
+										isFavorite
+											? 'bg-[#f5a623]/10 border-[#f5a623]/40 text-[#f5a623]'
+											: 'bg-transparent border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
+									}`}
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24"
+										fill={isFavorite ? '#f5a623' : 'none'}
+										stroke={isFavorite ? '#f5a623' : 'currentColor'}
+										strokeWidth={1.5}
+									>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+									</svg>
+									{isFavorite ? 'В избранном' : 'В избранное'}
+								</motion.button>
 								<label className="text-white text-sm font-semibold block mb-2">Гости</label>
 								<div className="flex items-center gap-4">
 									<motion.button

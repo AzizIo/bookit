@@ -13,7 +13,6 @@ export default function RegisterPage() {
 	const { register } = useAuth()
 	const navigate = useNavigate()
 
-	// стало
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault()
 		if (password !== confirmPassword) {
@@ -51,69 +50,59 @@ export default function RegisterPage() {
 				<form onSubmit={handleSubmit} className="flex flex-col gap-5">
 					<div>
 						<label className="text-white text-sm font-semibold block mb-2">Имя</label>
-						<div className="relative">
-							<span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">👤</span>
-							<input
-								type="text"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder="Ваше имя"
-								required
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-11 pr-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
-							/>
-						</div>
+						<input
+							type="text"
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							placeholder="Ваше имя"
+							required
+							className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
+						/>
 					</div>
 
 					<div>
 						<label className="text-white text-sm font-semibold block mb-2">Email</label>
-						<div className="relative">
-							<span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">✉</span>
-							<input
-								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="your@email.com"
-								required
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-11 pr-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
-							/>
-						</div>
+						<input
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							placeholder="your@email.com"
+							required
+							className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
+						/>
 					</div>
 
 					<div>
 						<label className="text-white text-sm font-semibold block mb-2">Пароль</label>
 						<div className="relative">
-							<span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">🔒</span>
 							<input
 								type={showPassword ? 'text' : 'password'}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								placeholder="Минимум 6 символов"
 								required
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-11 pr-12 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
+								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 pr-12 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
 							/>
 							<button
 								type="button"
 								onClick={() => setShowPassword(!showPassword)}
-								className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+								className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition text-sm"
 							>
-								{showPassword ? '🙈' : '👁'}
+								{showPassword ? 'Скрыть' : 'Показать'}
 							</button>
 						</div>
 					</div>
 
 					<div>
 						<label className="text-white text-sm font-semibold block mb-2">Подтвердите пароль</label>
-						<div className="relative">
-							<span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">🔒</span>
-							<input
-								type={showPassword ? 'text' : 'password'}
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								placeholder="Повторите пароль"
-								required
-								className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-11 pr-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
-							/>
-						</div>
+						<input
+							type={showPassword ? 'text' : 'password'}
+							value={confirmPassword}
+							onChange={(e) => setConfirmPassword(e.target.value)}
+							placeholder="Повторите пароль"
+							required
+							className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm placeholder-zinc-500 focus:border-[#f5a623] focus:outline-none transition"
+						/>
 					</div>
 
 					<button

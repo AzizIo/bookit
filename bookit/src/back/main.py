@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 SECRET_KEY = "asdasdjj"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+ADMIN_EMAIL = "admin@bookit.com"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -35,6 +36,7 @@ class User(Base):
     full_name = Column(String)
     email = Column(String, unique=True)
     password = Column(String)
+    user_role = Column(String, default="renter")
     booking_history = Column(String, default="")
     total_hours_booked = Column(Float, default=0.0)
     favorite_listings = Column(String, default="")
@@ -51,8 +53,26 @@ class Listing(Base):
     description     = Column(String, default="")
     image_url       = Column(String, default="")
     amenities       = Column(String, default="")
+    owner_id        = Column(Integer, default=0)
+    status          = Column(String, default="approved")
 
 Base.metadata.create_all(engine)
+
+# миграция
+import sqlite3
+conn = sqlite3.connect("./booking.db")
+cursor = conn.cursor()
+for stmt in [
+    "ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT 'renter'",
+    "ALTER TABLE listings ADD COLUMN owner_id INTEGER DEFAULT 0",
+    "ALTER TABLE listings ADD COLUMN status TEXT DEFAULT 'approved'",
+]:
+    try:
+        cursor.execute(stmt)
+    except:
+        pass
+conn.commit()
+conn.close()
 
 # --- Схемы ---
 class UserCreate(BaseModel):
@@ -86,10 +106,24 @@ class ListingCreate(BaseModel):
 
 class ListingOut(ListingCreate):
     id: int
+    owner_id: int = 0
+    status: str = "approved"
     model_config = {"from_attributes": True}
+
+class ListingUpdate(BaseModel):
+    title: Optional[str] = None
+    city: Optional[str] = None
+    category: Optional[str] = None
+    price_per_night: Optional[float] = None
+    max_guests: Optional[int] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    amenities: Optional[str] = None
+
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
+
 # --- Хелперы ---
 def get_db():
     db = SessionLocal()
@@ -122,6 +156,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+def require_admin(current_user: User = Depends(get_current_user)):
+    if current_user.email != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Admin only")
+    return current_user
+
 # --- Auth ---
 @app.post("/auth/register", response_model=UserOut, status_code=201)
 def register(data: UserCreate, db: Session = Depends(get_db)):
@@ -130,7 +169,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     user = User(
         full_name=data.full_name,
         email=data.email,
-        password=hash_password(data.password)
+        password=hash_password(data.password),
     )
     db.add(user)
     db.commit()
@@ -149,23 +188,33 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 def me(current_user: User = Depends(get_current_user)):
     return current_user
 
-# --- Listings ---
+# --- Listings (public — only approved) ---
 @app.get("/listings/", response_model=list[ListingOut])
-def get_listings(city: str = None, category: str = None, db: Session = Depends(get_db)):
-    q = db.query(Listing)
+def get_listings(city: str = None, category: str = None, q: str = None, db: Session = Depends(get_db)):
+    query = db.query(Listing).filter(Listing.status == "approved")
     if city:
-        q = q.filter(Listing.city.ilike(f"%{city}%"))
+        query = query.filter(Listing.city.ilike(f"%{city}%"))
     if category:
-        q = q.filter(Listing.category == category)
-    return q.all()
+        query = query.filter(Listing.category == category)
+    if q:
+        query = query.filter(
+            (Listing.title.ilike(f"%{q}%")) | (Listing.city.ilike(f"%{q}%"))
+        )
+    return query.all()
 
 @app.get("/listings/three", response_model=list[ListingOut])
 def get_three_listings(db: Session = Depends(get_db)):
-    return db.query(Listing).limit(3).all()
+    return db.query(Listing).filter(Listing.status == "approved").limit(3).all()
 
+# пользователь отправляет объявление на модерацию (status=pending)
 @app.post("/listings/", response_model=ListingOut, status_code=201)
-def create_listing(data: ListingCreate, db: Session = Depends(get_db)):
-    listing = Listing(**data.model_dump())
+def create_listing(data: ListingCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    is_admin = current_user.email == ADMIN_EMAIL
+    listing = Listing(
+        **data.model_dump(),
+        owner_id=current_user.id,
+        status="approved" if is_admin else "pending"
+    )
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -194,27 +243,66 @@ def delete_listing(listing_id: int, db: Session = Depends(get_db)):
     db.query(Listing).filter(Listing.id == listing_id).delete()
     db.commit()
 
+# --- Мои объявления (все статусы) ---
+@app.get("/listings/my/", response_model=list[ListingOut])
+def get_my_listings(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return db.query(Listing).filter(Listing.owner_id == current_user.id).all()
+
+# --- Модерация (admin only) ---
+@app.get("/admin/pending", response_model=list[ListingOut])
+def get_pending_listings(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    return db.query(Listing).filter(Listing.status == "pending").all()
+
+@app.put("/admin/listings/{listing_id}/approve", response_model=ListingOut)
+def approve_listing(listing_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Not found")
+    listing.status = "approved"
+    db.commit()
+    db.refresh(listing)
+    return listing
+
+@app.put("/admin/listings/{listing_id}/reject", response_model=ListingOut)
+def reject_listing(listing_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Not found")
+    listing.status = "rejected"
+    db.commit()
+    db.refresh(listing)
+    return listing
+
+@app.put("/admin/listings/{listing_id}", response_model=ListingOut)
+def admin_update_listing(listing_id: int, data: ListingUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Not found")
+    for key, val in data.model_dump(exclude_unset=True).items():
+        setattr(listing, key, val)
+    db.commit()
+    db.refresh(listing)
+    return listing
+
+# --- Users ---
 @app.get("/users/rating", response_model=list[UserOut])
 def get_users_stat(db: Session = Depends(get_db)):
     return db.query(User).order_by(User.rating.desc()).all()
 
-# эндпоинт для добавления/удаления из избранного
 @app.post("/users/favorites/{listing_id}")
 def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     favorites = set(current_user.favorite_listings.split(',')) if current_user.favorite_listings else set()
-    favorites.discard('')  # убираем пустые строки
-    
+    favorites.discard('')
     if str(listing_id) in favorites:
-        favorites.remove(str(listing_id))  # убираем если уже есть
+        favorites.remove(str(listing_id))
         added = False
     else:
-        favorites.add(str(listing_id))  # добавляем если нет
+        favorites.add(str(listing_id))
         added = True
-    
     current_user.favorite_listings = ','.join(favorites)
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
-    
+
 @app.put("/users/me", response_model=UserOut)
 def update_user_info(data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if data.full_name:

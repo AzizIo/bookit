@@ -9,6 +9,7 @@ import MainPage from './pages/MainPage'
 import RegisterPage from './pages/RegisterPage'
 import UserPage from './pages/UserPage'
 import ListingPage from './pages/ListingPage'
+import SubmitListingPage from './pages/SubmitListingPage'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/listing/:id" element={<ListingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/submit" element={<SubmitListingPage />} />
           <Route path="*" element={<MainPage />} />
           <Route path="/user" element={<UserPage />} />
         </Routes>

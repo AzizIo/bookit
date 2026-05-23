@@ -1,215 +1,409 @@
-import kaleidoscope from '../assets/kaleidoscope.png'
-import heart from '../assets/heart.png'
-import Bug from '../components/bug.tsx'
 import { useState, useEffect } from 'react'
-import API from '../API/api.ts'
-import { useAuth } from '../context/AuthContext.tsx'
-import GlowCard from '../components/GlowCard.tsx'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import API from '../API/api'
+import { useAuth } from '../context/AuthContext'
+import type { User } from '../context/AuthContext'
+import GlowCard from '../components/GlowCard'
+import Bug from '../components/bug'
 
+interface Listing {
+	id: number
+	title: string
+	city: string
+	category: string
+	price_per_night: number
+	max_guests: number
+	description: string
+	image_url: string
+	amenities: string
+	status: string
+}
+
+interface UserData {
+	id: number
+	full_name: string
+	email: string
+	booking_history: string
+	total_hours_booked: number
+	favorite_listings: string
+	rating: number
+}
 
 export default function UserPage() {
-    const { user, setUser } = useAuth()
-    const [favorites, setFavorites] = useState<Listing[]>([])
-    const [activeTab, setActiveTab] = useState('upcoming')
+	const { user, setUser, logout } = useAuth()
+	const navigate = useNavigate()
+	const [favorites, setFavorites] = useState<Listing[]>([])
+	const [myListings, setMyListings] = useState<Listing[]>([])
+	const [activeTab, setActiveTab] = useState('bookings')
+	const [userData, setUserData] = useState<UserData | null>(null)
+	const [userEmail, setUserEmail] = useState('')
+	const [userName, setUserName] = useState('')
+	const [saving, setSaving] = useState(false)
+	const [saveMsg, setSaveMsg] = useState('')
 
-    const navigate = useNavigate()
-    const [userData, setUserData] = useState(null)
-    const [userEmail, setUserEmail] = useState('')
-    const [userName, setUserName] = useState('')
-    async function handleUpdate() {
-        try {
-            console.log('1. Отправляем запрос:', { full_name: userName, email: userEmail })
-            const res = await API.put('/users/me', { full_name: userName, email: userEmail })
-            console.log('2. Ответ от сервера:', res.data)
+	const tabs = [
+		{ id: 'bookings', label: 'БРОНИРОВАНИЯ' },
+		{ id: 'my-listings', label: 'МОИ ОБЪЯВЛЕНИЯ' },
+		{ id: 'favorite', label: 'ИЗБРАННОЕ' },
+		{ id: 'settings', label: 'НАСТРОЙКИ' },
+	]
 
-            const updatedUser: User = {
-                ...user!,
-                full_name: res.data.full_name,
-                email: res.data.email,
-            }
-            console.log('3. updatedUser:', updatedUser)
+	async function handleUpdate() {
+		setSaving(true)
+		setSaveMsg('')
+		try {
+			const res = await API.put('/users/me', { full_name: userName, email: userEmail })
+			const updatedUser: User = {
+				...user!,
+				full_name: res.data.full_name,
+				email: res.data.email,
+			}
+			setUser(updatedUser)
+			setSaveMsg('Сохранено')
+		} catch (e: unknown) {
+			const err = e as { response?: { data?: { detail?: string } } }
+			setSaveMsg(err.response?.data?.detail || 'Ошибка')
+		} finally {
+			setSaving(false)
+			setTimeout(() => setSaveMsg(''), 3000)
+		}
+	}
 
-            setUser(updatedUser)
+	useEffect(() => {
+		async function fetchUser() {
+			try {
+				const { data } = await API.get('/auth/me')
+				setUserData(data)
+				setUserEmail(data.email)
+				setUserName(data.full_name)
+			} catch {
+				// ignore
+			}
+		}
+		fetchUser()
+	}, [])
 
-            console.log('4. localStorage после сохранения:', localStorage.getItem('user'))
-            alert('Сохранено!')
-        } catch (e: any) {
-            console.log('ОШИБКА:', e)
-            alert(e.response?.data?.detail || 'Ошибка')
-        }
-    }   
+	useEffect(() => {
+		async function fetchFavorites() {
+			try {
+				const { data: freshUser } = await API.get('/auth/me')
+				if (!freshUser?.favorite_listings) return
+				const ids = freshUser.favorite_listings.split(',').filter(Boolean).map(Number)
+				const results = await Promise.all(ids.map((id: number) => API.get(`/listings/${id}`)))
+				setFavorites(results.map((res) => res.data))
+			} catch {
+				// ignore
+			}
+		}
+		fetchFavorites()
+	}, [])
 
-    useEffect(() => {
-        async function fetchUser() {
-            const { data } = await API.get('/auth/me')
-            setUserData(data)
-            setUserEmail(data.email)
-            setUserName(data.full_name)
-        }
-        fetchUser()
-    }, []) // [] означает — выполнить один раз при загрузке страницы
+	useEffect(() => {
+		API.get('/listings/my/')
+			.then((res) => setMyListings(res.data))
+			.catch(() => {})
+	}, [])
 
-    useEffect(() => {
-        async function fetchFavorites() {
-            const { data: freshUser } = await API.get('/auth/me')  // свежие данные с БД
-            if (!freshUser?.favorite_listings) return
+	const initials = user?.full_name
+		? user.full_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+		: '?'
 
-            const ids = freshUser.favorite_listings.split(',').filter(Boolean).map(Number)
-            const results = await Promise.all(ids.map(id => API.get(`/listings/${id}`)))
-            setFavorites(results.map(res => res.data))
-        }
-        fetchFavorites()
-    }, [])
+	const bookingCount = userData?.booking_history?.split(',').filter(Boolean).length || 0
+	const favoriteCount = userData?.favorite_listings?.split(',').filter(Boolean).length || 0
 
-    return (
-        <>
-            <div className="min-h-screen bg-[#0f1629] ">
-                <Bug />
+	return (
+		<>
+			<Bug />
+			<div className="min-h-screen bg-[#0f1629]">
+				{/* Header */}
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 0.8 }}
+					className="border-b border-white/5"
+				>
+					<div className="max-w-4xl mx-auto px-6 py-16 md:px-12">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-6">
+								<div className="w-16 h-16 rounded-full bg-[#1a2035] border border-[#f5a623]/30 flex items-center justify-center text-[#f5a623] text-lg font-light tracking-widest">
+									{initials}
+								</div>
+								<div>
+									<h1 className="text-white text-2xl font-light tracking-wide uppercase">
+										{user?.full_name || 'Пользователь'}
+									</h1>
+									<p className="text-zinc-500 text-sm tracking-wider mt-1">{user?.email}</p>
+								</div>
+							</div>
+							<button
+								onClick={() => { logout(); navigate('/') }}
+								className="text-zinc-500 text-xs tracking-widest uppercase hover:text-white transition-colors duration-300"
+							>
+								Выйти
+							</button>
+						</div>
 
+						{/* Stats row */}
+						<div className="flex gap-12 mt-12">
+							{[
+								{ value: bookingCount, label: 'БРОНИРОВАНИЙ' },
+								{ value: myListings.length, label: 'ОБЪЯВЛЕНИЙ' },
+								{ value: favoriteCount, label: 'ИЗБРАННЫХ' },
+								{ value: userData?.rating?.toFixed(1) || '0.0', label: 'РЕЙТИНГ' },
+							].map((stat, i) => (
+								<motion.div
+									key={i}
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+								>
+									<div className="text-white text-2xl font-light">{stat.value}</div>
+									<div className="text-zinc-600 text-[10px] tracking-[0.2em] mt-1">{stat.label}</div>
+								</motion.div>
+							))}
+						</div>
+					</div>
+				</motion.div>
 
-                <div className="di">
-                    <div className="text-5xl tracking-wide text-white font-semibold pt-12 mx-6">My Dashboard</div>
-                    <p className="text-lg text-gray-600 py-2 mx-6">Manage your bookings and preferences</p>
-                </div>
-                <div className="di m-4 flex flex-col gap-6 md:flex-row md:gap-8 md:mx-6 md:max-w-8xl">
-                    <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                        <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
-                        {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.total_bookings || 0}</div>
-                        <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Total Bookings</p>
-                    </div>
-                    <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                        {/* картинку сгенерировать потом */}
-                        <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
-                        {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.total_hours_booked || 0}</div>
-                        <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Hours Booked</p>
-                    </div>
-                    <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                        <div className=""><img className="  w-18 h-18 object-cover" src={heart} alt="Heart" /></div>
-                        {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.favorite_listings?.length || 0}</div>
-                        <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Favorite Spaces</p>
-                    </div>
-                    <div className="kv flex-1 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                        {/* картинку сгенерировать потом */}
-                        <div className=""><img className="  w-18 h-18 object-cover" src={kaleidoscope} alt="Kaleidoscope" /></div>
-                        {/* Сделать потом апи запрос и получить цифры */}
-                        <div className=" ml-4 text-4xl font-bold text-white">{userData?.rating?.toFixed(1) || 0}</div>
-                        <p className="text-lg ml-4 mt-2 mb-4 text-gray-600">Average Rating</p>
-                    </div>
-                </div>
-                <div className="div md:flex ">
+				{/* Tabs */}
+				<div className="border-b border-white/5">
+					<div className="max-w-4xl mx-auto px-6 md:px-12">
+						<div className="flex gap-0">
+							{tabs.map((tab) => (
+								<button
+									key={tab.id}
+									onClick={() => setActiveTab(tab.id)}
+									className={`relative px-6 py-4 text-[11px] tracking-[0.2em] transition-colors duration-300 ${
+										activeTab === tab.id
+											? 'text-white'
+											: 'text-zinc-600 hover:text-zinc-400'
+									}`}
+								>
+									{tab.label}
+									{activeTab === tab.id && (
+										<motion.div
+											layoutId="tab-underline"
+											className="absolute bottom-0 left-0 right-0 h-px bg-[#f5a623]"
+											transition={{ duration: 0.3 }}
+										/>
+									)}
+								</button>
+							))}
+						</div>
+					</div>
+				</div>
 
-                    <div className="swaper mx-4 mt-12  md:max-w-60 md:mt-12 md:ml-6 bg-white/5 border border-gray-700 rounded-xl px-3 py-3 ">
-                        <div className="buttons flex flex-col  text-left md:flex-col ">
-                            {/* /* Кнопки для переключения между разделами */}
-                            {/* иконки потом сделать нормально */}
-                            <button
-                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'upcoming' ? 'bg-[#f5a623] text-black' : ''}`}
-                                onClick={() => setActiveTab('upcoming')}
-                            >
-                                📅 Upcoming
-                            </button>
-                            <button
-                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'past' ? 'bg-[#f5a623] text-black' : ''}`}
-                                onClick={() => setActiveTab('past')}
-                            >
-                                ⏳ Past
-                            </button>
-                            <button
-                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'favorite' ? 'bg-[#f5a623] text-black' : ''}`}
-                                onClick={() => setActiveTab('favorite')}
-                            >
-                                ⭐ Favorite
-                                {/* нужно будет сделать это в отдельную таблицу */}
-                            </button>
-                            <button
-                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'travel' ? 'bg-[#f5a623] text-black' : ''}`}
-                                onClick={() => setActiveTab('travel')}
-                            >
-                                🗺️ Travel Map
-                            </button>
-                            <button
-                                className={`w-full rounded-2xl border border-transparent px-4 py-3 text-left text-lg font-semibold text-white hover:bg-white/10 md:w-auto ${activeTab === 'settings' ? 'bg-[#f5a623] text-black' : ''}`}
-                                onClick={() => setActiveTab('settings')}
-                            >
-                                ⚙️ Settings
-                            </button>
-                        </div>
-                    </div>
-                    <div className="content mt-6">
-                        {/* Здесь будет отображаться контент в зависимости от выбранного раздела */}
-                        {activeTab === 'upcoming' && <div className="text-white text-lg">Your upcoming bookings will appear here.</div>}
-                        {activeTab === 'past' && <div className="text-white text-lg">Your past bookings will appear here.</div>}
-                        {activeTab === 'favorite' && (
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {favorites.length === 0
-                                    ? <p className="text-zinc-400">Нет избранных мест</p>
-                                    : favorites.map((l) => (
-                                        <GlowCard
-                                            key={l.id}
-                                            onClick={() => navigate(`/listing/${l.id}`)}
-                                            className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 cursor-pointer"
-                                        >
-                                            <div className="w-full h-48 overflow-hidden">
-                                                <img src={l.image_url} alt={l.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                            </div>
-                                            <div className="p-4 flex flex-col gap-2">
-                                                <h2 className="text-white text-base font-semibold">{l.title}</h2>
-                                                <div className="flex items-center gap-1 text-[#8b93a8] text-xs">
-                                                    <span>📍</span>
-                                                    <span>{l.city}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    {l.amenities.split(',').map((item, i) => (
-                                                        <span key={i} className="text-[#8b93a8] text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5">
-                                                            {item.trim()}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <hr className="border-white/10 mt-1" />
-                                                <div className="flex items-center justify-between mt-1">
-                                                    <div>
-                                                        <span className="text-[#f5a623] text-lg font-bold">€{l.price_per_night}</span>
-                                                        <span className="text-[#8b93a8] text-xs">/ночь</span>
-                                                    </div>
-                                                    <button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
-                                                        Забронировать
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </GlowCard>
-                                    ))
-                                }
-                            </div>
-                        )}
-                        {activeTab === 'travel' && <div className="text-white text-lg">Your travel map will appear here.</div>}
-                        {activeTab === 'settings' && <div className="text-white text-lg">
-                            <div className='font-bold m-8 text-2xl'>Settings</div>
-                            <div className=' bg-white/5 m-8 border border-gray-700 rounded-xl px-3 py-3 md: min-w-220' >
-                                <div className='p-4 font-semibold' >Profile information</div>
-                                <form onSubmit={(e) => { e.preventDefault(); handleUpdate() }} className='flex flex-col gap-4'>
-                                    <div className='flex flex-col px-4'>
-                                        <label className='px-4 mt-4 block' htmlFor="fullName">Full Name</label>
-                                        <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userName} onChange={(e) => setUserName(e.target.value)} type="text" id="fullName" />
-                                    </div>
-                                    <div className='flex flex-col px-4 pb-8'>
-                                        <label htmlFor="email" className='px-4 mt-4 block'>Email</label>
-                                        <input className='rounded-xl mt-2 px-2 py-2 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full' value={userEmail} onChange={(e) => setUserEmail(e.target.value)} type="email" id="email" />
-                                    </div>
-                                    <div className='mx-6'>
-                                        <button type="submit" className='bg-[#f5a623] text-[#0f1629] text-xl font-bold px-8 py-4 rounded-xl hover:bg-[#e09610] transition active:scale-95'>
-                                            Сохранить
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>}
-                    </div>
-                </div>
-            </div>
-        </>
-    )
+				{/* Content */}
+				<div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
+					<AnimatePresence mode="wait">
+						{activeTab === 'bookings' && (
+							<motion.div
+								key="bookings"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 0.3 }}
+							>
+								<div className="py-20 text-center">
+									<p className="text-zinc-600 text-sm tracking-wider uppercase">Нет активных бронирований</p>
+									<button
+										onClick={() => navigate('/booking')}
+										className="mt-8 text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+									>
+										Найти пространство
+									</button>
+								</div>
+							</motion.div>
+						)}
+
+						{activeTab === 'favorite' && (
+							<motion.div
+								key="favorite"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 0.3 }}
+							>
+								{favorites.length === 0 ? (
+									<div className="py-20 text-center">
+										<p className="text-zinc-600 text-sm tracking-wider uppercase">Нет избранных мест</p>
+										<button
+											onClick={() => navigate('/booking')}
+											className="mt-8 text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+										>
+											Найти пространство
+										</button>
+									</div>
+								) : (
+									<div className="grid gap-6 sm:grid-cols-2">
+										{favorites.map((l, i) => (
+											<motion.div
+												key={l.id}
+												initial={{ opacity: 0, y: 15 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{ delay: i * 0.08, duration: 0.4 }}
+											>
+												<GlowCard
+													onClick={() => navigate(`/listing/${l.id}`)}
+													className="bg-[#1a2035] rounded-xl overflow-hidden border border-white/5 cursor-pointer"
+												>
+													{l.image_url && (
+														<div className="w-full h-44 overflow-hidden">
+															<img src={l.image_url} alt={l.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+														</div>
+													)}
+													<div className="p-5">
+														<h3 className="text-white text-sm font-semibold">{l.title}</h3>
+														<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
+														<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+															<span className="text-[#f5a623] font-bold">€{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
+														</div>
+													</div>
+												</GlowCard>
+											</motion.div>
+										))}
+									</div>
+								)}
+							</motion.div>
+						)}
+
+						{activeTab === 'my-listings' && (
+							<motion.div
+								key="my-listings"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 0.3 }}
+							>
+								{myListings.length === 0 ? (
+									<div className="py-20 text-center">
+										<p className="text-zinc-600 text-sm tracking-wider uppercase">У вас пока нет объявлений</p>
+										<button
+											onClick={() => navigate('/submit')}
+											className="mt-8 text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+										>
+											Разместить объявление
+										</button>
+									</div>
+								) : (
+									<>
+										<div className="flex justify-end mb-4">
+											<button
+												onClick={() => navigate('/submit')}
+												className="text-[11px] tracking-[0.15em] uppercase text-[#f5a623] border border-[#f5a623]/30 px-4 py-2 rounded-lg hover:bg-[#f5a623]/10 transition"
+											>
+												+ Добавить ещё
+											</button>
+										</div>
+										<div className="grid gap-6 sm:grid-cols-2">
+											{myListings.map((l, i) => (
+												<motion.div
+													key={l.id}
+													initial={{ opacity: 0, y: 15 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{ delay: i * 0.08 }}
+												>
+													<GlowCard
+														onClick={() => l.status === 'approved' ? navigate(`/listing/${l.id}`) : undefined}
+														className={`bg-[#1a2035] rounded-xl overflow-hidden border border-white/5 ${l.status === 'approved' ? 'cursor-pointer' : 'opacity-80'}`}
+													>
+														{l.image_url && (
+															<div className="w-full h-44 overflow-hidden relative">
+																<img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
+																<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${
+																	l.status === 'approved' ? 'bg-green-500/90 text-white' :
+																	l.status === 'pending' ? 'bg-amber-500/90 text-white' :
+																	'bg-red-500/90 text-white'
+																}`}>
+																	{l.status === 'approved' ? 'Активно' : l.status === 'pending' ? 'На проверке' : 'Отклонено'}
+																</span>
+															</div>
+														)}
+														<div className="p-5">
+															<h3 className="text-white text-sm font-semibold">{l.title}</h3>
+															<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
+															<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+																<span className="text-[#f5a623] font-bold">€{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
+															</div>
+														</div>
+													</GlowCard>
+												</motion.div>
+											))}
+										</div>
+									</>
+								)}
+							</motion.div>
+						)}
+
+						{activeTab === 'settings' && (
+							<motion.div
+								key="settings"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 0.3 }}
+							>
+								<div className="max-w-md">
+									<h2 className="text-zinc-500 text-[10px] tracking-[0.2em] uppercase mb-8">Информация профиля</h2>
+									<form onSubmit={(e) => { e.preventDefault(); handleUpdate() }} className="flex flex-col gap-6">
+										<div>
+											<label className="text-zinc-500 text-[10px] tracking-[0.2em] uppercase block mb-3" htmlFor="fullName">Имя</label>
+											<input
+												className="w-full bg-transparent border-b border-white/10 text-white text-sm tracking-wide py-3 outline-none focus:border-[#f5a623] transition-colors duration-300 placeholder:text-zinc-700"
+												value={userName}
+												onChange={(e) => setUserName(e.target.value)}
+												type="text"
+												id="fullName"
+												placeholder="Ваше имя"
+											/>
+										</div>
+										<div>
+											<label className="text-zinc-500 text-[10px] tracking-[0.2em] uppercase block mb-3" htmlFor="email">Email</label>
+											<input
+												className="w-full bg-transparent border-b border-white/10 text-white text-sm tracking-wide py-3 outline-none focus:border-[#f5a623] transition-colors duration-300 placeholder:text-zinc-700"
+												value={userEmail}
+												onChange={(e) => setUserEmail(e.target.value)}
+												type="email"
+												id="email"
+												placeholder="your@email.com"
+											/>
+										</div>
+										<div className="flex items-center gap-4 mt-4">
+											<button
+												type="submit"
+												disabled={saving}
+												className="text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold disabled:opacity-30"
+											>
+												{saving ? 'Сохранение...' : 'Сохранить'}
+											</button>
+											{saveMsg && (
+												<motion.span
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className={`text-xs tracking-wider ${saveMsg === 'Сохранено' ? 'text-green-400' : 'text-red-400'}`}
+												>
+													{saveMsg}
+												</motion.span>
+											)}
+										</div>
+									</form>
+								</div>
+
+								<div className="mt-16 pt-12 border-t border-white/5">
+									<h2 className="text-zinc-500 text-[10px] tracking-[0.2em] uppercase mb-6">Аккаунт</h2>
+									<button
+										onClick={() => { logout(); navigate('/') }}
+										className="text-[11px] tracking-[0.2em] uppercase text-zinc-500 border border-white/10 px-8 py-3 rounded-xl hover:border-red-500/30 hover:text-red-400 transition-all duration-300"
+									>
+										Выйти из аккаунта
+									</button>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
+			</div>
+		</>
+	)
 }

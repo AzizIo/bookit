@@ -25,7 +25,10 @@ export default function Header() {
 
 					<div className="hidden md:flex items-center gap-6">
 						{user?.role === 'admin' && (
-							<Link to="/admin" className="text-white hover:text-[#f5a623] transition font-medium">Админ</Link>
+							<Link to="/admin" className="text-white hover:text-[#f5a623] transition font-medium">Модерация</Link>
+						)}
+						{user && (
+							<Link to="/submit" className="text-white hover:text-[#f5a623] transition font-medium">Разместить</Link>
 						)}
 						<Search />
 					</div>

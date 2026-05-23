@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
@@ -30,21 +30,51 @@ const amenityIcons: Record<string, string> = {
 
 export default function BookingPage() {
 	const navigate = useNavigate()
+	const [searchParams] = useSearchParams()
 	const { user } = useAuth()
 	const [listings, setListings] = useState<Listing[]>([])
 	const [priceRange, setPriceRange] = useState(10000)
 	const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
-	const [searchTerm, setSearchTerm] = useState('')
+	const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
 	const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
 	const [loading, setLoading] = useState(true)
+	const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set())
 	const isAdmin = user?.role === 'admin'
 
 	useEffect(() => {
-		API.get('/listings/')
+		const q = searchParams.get('q')
+		const category = searchParams.get('category')
+		const params = new URLSearchParams()
+		if (q) params.set('q', q)
+		if (category) params.set('category', category)
+		API.get(`/listings/?${params.toString()}`)
 			.then((res) => setListings(res.data))
 			.catch(() => setListings([]))
 			.finally(() => setLoading(false))
-	}, [])
+	}, [searchParams])
+
+	useEffect(() => {
+		if (!user) return
+		API.get('/auth/me').then((res) => {
+			const favs = res.data.favorite_listings
+			if (favs) {
+				setFavoriteIds(new Set(favs.split(',').filter(Boolean).map(Number)))
+			}
+		}).catch(() => {})
+	}, [user])
+
+	async function toggleFavorite(e: React.MouseEvent, listingId: number) {
+		e.stopPropagation()
+		if (!user) { navigate('/login'); return }
+		try {
+			const res = await API.post(`/users/favorites/${listingId}`)
+			if (res.data.added) {
+				setFavoriteIds((prev) => new Set([...prev, listingId]))
+			} else {
+				setFavoriteIds((prev) => { const n = new Set(prev); n.delete(listingId); return n })
+			}
+		} catch { /* ignore */ }
+	}
 
 	const allAmenities = Array.from(
 		new Set(listings.flatMap((l) => l.amenities.split(',').map((a) => a.trim()).filter(Boolean)))
@@ -213,6 +243,22 @@ export default function BookingPage() {
 									onClick={() => navigate(`/listing/${l.id}`)}
 									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 relative group"
 								>
+									{/* Favorite heart */}
+									<motion.button
+										whileHover={{ scale: 1.2 }}
+										whileTap={{ scale: 0.85 }}
+										onClick={(e) => toggleFavorite(e, l.id)}
+										className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 transition hover:bg-black/60"
+										title="В избранное"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24"
+											fill={favoriteIds.has(l.id) ? '#f5a623' : 'none'}
+											stroke={favoriteIds.has(l.id) ? '#f5a623' : 'white'}
+											strokeWidth={2}
+										>
+											<path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+										</svg>
+									</motion.button>
 									{/* Admin pencil */}
 									{isAdmin && (
 										<motion.button
@@ -224,7 +270,7 @@ export default function BookingPage() {
 												e.stopPropagation()
 												navigate(`/listing/${l.id}`)
 											}}
-											className="absolute top-3 right-3 z-10 bg-[#f5a623] text-[#0f1629] p-2 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+											className="absolute top-3 right-14 z-10 bg-[#f5a623] text-[#0f1629] p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
 											title="Редактировать"
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
