@@ -485,6 +485,13 @@ export default function ListingPage() {
 
 									<div className='' >
 										<div className='text-zinc-500 text-sm' >{listing.price_per_night} x {listingtime} часов</div>
+										<hr className='bg-zinc-400 text-zinc-600 my-4' />
+										<div className='flex items-center justify-between  '>
+											<div className='font-bold text-white' >
+												Total
+											</div>
+											<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}$</div>
+										</div>
 									</div> :
 
 
@@ -493,16 +500,8 @@ export default function ListingPage() {
 									</div>
 								}
 
-								<hr className='bg-zinc-400 text-zinc-600 my-4'  />
-								<div className='flex items-center justify-between  '>
-									<div className='font-bold text-white' >
-										Total
-									</div>
-									<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}$</div>
-								</div>
-								<div>
 
-								</div>
+
 
 							</div>
 
