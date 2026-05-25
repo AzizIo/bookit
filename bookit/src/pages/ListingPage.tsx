@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
 import GlowCard from '../components/GlowCard'
+import { div, li } from 'framer-motion/client'
 
 
 interface Listing {
@@ -58,17 +59,17 @@ export default function ListingPage() {
 	})
 	const [saving, setSaving] = useState(false)
 	const [isFavorite, setIsFavorite] = useState(false)
-
+	const [listingtime, setListingTime] = useState(0)
 	// проверяем при загрузке
 	useEffect(() => {
-    async function checkFavorite() {
-        if (!listing) return
-        const { data: freshUser } = await API.get('/auth/me')
-        const favs = freshUser.favorite_listings?.split(',') || []
-        setIsFavorite(favs.includes(String(listing.id)))
-    }
-    checkFavorite()
-}, [listing])
+		async function checkFavorite() {
+			if (!listing) return
+			const { data: freshUser } = await API.get('/auth/me')
+			const favs = freshUser.favorite_listings?.split(',') || []
+			setIsFavorite(favs.includes(String(listing.id)))
+		}
+		checkFavorite()
+	}, [listing])
 
 
 	async function toggleFavorite() {
@@ -397,8 +398,9 @@ export default function ListingPage() {
 					>
 						<div className="bg-[#1a2035] border border-white/10 rounded-2xl p-6 sticky top-8">
 							<div className="mb-6">
-								<span className="text-[#f5a623] text-3xl font-bold">€{listing.price_per_night}</span>
-								<span className="text-zinc-400 text-sm"> /ночь</span>
+								{/* пока так  */}
+								<span className="text-[#f5a623] text-3xl font-bold">₽{listing.price_per_night}</span>
+								<span className="text-zinc-400 text-sm"> /час</span>
 							</div>
 
 							{/* Date */}
@@ -415,19 +417,22 @@ export default function ListingPage() {
 
 							{/* Time */}
 							<div className="mb-4">
+
 								<label className="text-white text-sm font-semibold block mb-2">Время</label>
-								<select className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition">
+								<select onChange={(e) => { const val = e.target.value; setListingTime(val); console.log(val) }} className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition">
 									<option value="">Выберите время</option>
-									<option value="09:00">09:00</option>
-									<option value="10:00">10:00</option>
-									<option value="11:00">11:00</option>
-									<option value="12:00">12:00</option>
-									<option value="13:00">13:00</option>
-									<option value="14:00">14:00</option>
-									<option value="15:00">15:00</option>
-									<option value="16:00">16:00</option>
-									<option value="17:00">17:00</option>
-									<option value="18:00">18:00</option>
+									{/* Обновляем время, теперь человек выбирает часы аренды  */}
+									<option value="">Выберите время</option>
+									<option value="1">09:00 – 10:00</option>
+									<option value="2">09:00 – 11:00</option>
+									<option value="3">09:00 – 12:00</option>
+									<option value="4">09:00 – 13:00</option>
+									<option value="5">09:00 – 14:00</option>
+									<option value="6">09:00 – 15:00</option>
+									<option value="7">09:00 – 16:00</option>
+									<option value="8">09:00 – 17:00</option>
+									<option value="9">09:00 – 18:00</option>
+									{/* Пока сделанно с фиксированным значением в будущем может сделаем два селектора начало и конец */}
 								</select>
 							</div>
 
@@ -438,11 +443,10 @@ export default function ListingPage() {
 									whileHover={{ scale: 1.02 }}
 									whileTap={{ scale: 0.97 }}
 									onClick={toggleFavorite}
-									className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold tracking-wide uppercase transition-all duration-300 mb-4 ${
-										isFavorite
-											? 'bg-[#f5a623]/10 border-[#f5a623]/40 text-[#f5a623]'
-											: 'bg-transparent border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
-									}`}
+									className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold tracking-wide uppercase transition-all duration-300 mb-4 ${isFavorite
+										? 'bg-[#f5a623]/10 border-[#f5a623]/40 text-[#f5a623]'
+										: 'bg-transparent border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
+										}`}
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24"
 										fill={isFavorite ? '#f5a623' : 'none'}
@@ -472,6 +476,34 @@ export default function ListingPage() {
 									</motion.button>
 								</div>
 								<p className="text-zinc-500 text-xs mt-1">Максимум: {listing.max_guests} чел.</p>
+							</div>
+
+							{/* total summ */}
+							<div className='mb-4 bg-[#313648] border-white/4 border rounded-xl py-4 px-4' >
+
+								{listingtime != 0 ?
+
+									<div className='' >
+										<div className='text-zinc-500 text-sm' >{listing.price_per_night} x {listingtime} часов</div>
+									</div> :
+
+
+									<div>
+										<div className='text-zinc-500 text-sm'>Выберите время чтобы посчитать сумму</div>
+									</div>
+								}
+
+								<hr className='bg-zinc-400 text-zinc-600 my-4'  />
+								<div className='flex items-center justify-between  '>
+									<div className='font-bold text-white' >
+										Total
+									</div>
+									<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}$</div>
+								</div>
+								<div>
+
+								</div>
+
 							</div>
 
 							{/* Confirm button */}
