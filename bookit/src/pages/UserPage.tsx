@@ -101,8 +101,13 @@ export default function UserPage() {
 
 	useEffect(() => {
 		API.get('/listings/my/')
-			.then((res) => setMyListings(res.data))
+			.then((res) => {
+				console.log(res.data)
+				setMyListings(res.data)
+			})
 			.catch(() => {})
+		
+			
 	}, [])
 
 	const initials = user?.full_name
@@ -311,16 +316,17 @@ export default function UserPage() {
 														{l.image_url && (
 															<div className="w-full h-44 overflow-hidden relative">
 																<img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
-																<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${
+																
+															</div>
+														)}
+														<div className="p-5">
+															<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${
 																	l.status === 'approved' ? 'bg-green-500/90 text-white' :
 																	l.status === 'pending' ? 'bg-amber-500/90 text-white' :
 																	'bg-red-500/90 text-white'
 																}`}>
 																	{l.status === 'approved' ? 'Активно' : l.status === 'pending' ? 'На проверке' : 'Отклонено'}
 																</span>
-															</div>
-														)}
-														<div className="p-5">
 															<h3 className="text-white text-sm font-semibold">{l.title}</h3>
 															<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
 															<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
