@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage'
 import UserPage from './pages/UserPage'
 import ListingPage from './pages/ListingPage'
 import SubmitListingPage from './pages/SubmitListingPage'
+import PayPage from './pages/PayPage'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/submit" element={<SubmitListingPage />} />
           <Route path="*" element={<MainPage />} />
           <Route path="/user" element={<UserPage />} />
+          <Route path='/pay' element={<PayPage/>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

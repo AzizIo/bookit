@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
+
 import GlowCard from '../components/GlowCard'
 import { div, li } from 'framer-motion/client'
 
@@ -509,9 +510,13 @@ export default function ListingPage() {
 							<motion.button
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
+
 								className="w-full bg-[#f5a623] text-[#0f1629] font-bold py-3.5 rounded-xl hover:bg-[#e09610] transition text-lg"
 							>
-								Подтвердить бронирование
+								<Link to="/pay" className="">
+
+									Подтвердить бронирование
+								</Link>
 							</motion.button>
 
 							{/* Host info */}
