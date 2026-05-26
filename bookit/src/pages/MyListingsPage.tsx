@@ -141,7 +141,7 @@ export default function MyListingsPage() {
 										</select>
 									</div>
 									<div>
-										<label className="text-zinc-400 text-sm block mb-1">Цена / ночь (€)</label>
+										<label className="text-zinc-400 text-sm block mb-1">Цена / ночь (₽)</label>
 										<input className={inp} type="number" value={form.price_per_night} onChange={set('price_per_night')} placeholder="89" required />
 									</div>
 									<div>
@@ -231,7 +231,7 @@ export default function MyListingsPage() {
 										<hr className="border-white/10 mt-2" />
 										<div className="flex items-center justify-between mt-1">
 											<div className="text-white text-lg font-bold">
-												<span className="text-[#f5a623]">€{l.price_per_night}</span>
+												<span className="text-[#f5a623]">₽{l.price_per_night}</span>
 												<span className="text-zinc-400 text-xs font-normal">/ночь</span>
 											</div>
 											<button

@@ -118,7 +118,7 @@ export default function SubmitListingPage() {
 
 					<div className="grid grid-cols-2 gap-3">
 						<div>
-							<label className="text-zinc-400 text-sm block mb-1">Цена / ночь (€)</label>
+							<label className="text-zinc-400 text-sm block mb-1">Цена / ночь (₽)</label>
 							<input className={inp} type="number" value={form.price_per_night} onChange={set('price_per_night')} placeholder="89" required />
 						</div>
 						<div>

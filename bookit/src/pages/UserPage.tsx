@@ -257,7 +257,7 @@ export default function UserPage() {
 														<h3 className="text-white text-sm font-semibold">{l.title}</h3>
 														<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
 														<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-															<span className="text-[#f5a623] font-bold">€{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
+															<span className="text-[#f5a623] font-bold">₽{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
 														</div>
 													</div>
 												</GlowCard>
@@ -324,7 +324,7 @@ export default function UserPage() {
 															<h3 className="text-white text-sm font-semibold">{l.title}</h3>
 															<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
 															<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-																<span className="text-[#f5a623] font-bold">€{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
+																<span className="text-[#f5a623] font-bold">₽{l.price_per_night}<span className="text-zinc-600 text-xs font-normal ml-1">/ ночь</span></span>
 															</div>
 														</div>
 													</GlowCard>
