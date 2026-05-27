@@ -101,6 +101,7 @@ export default function PayPage() {
                         </button>
                     </div>
                     <div className='mt-12' >
+                        <div className='text-white font-bold my-8 text-3xl text-center' >Горячие предложения</div>
                         <div className="grid gap-4 justify-center sm:grid-cols-2 lg:grid-cols-3 mx-auto max-w-[1280px]">
                             {hotList.map((l: Listing, i: number) => (
                                 <motion.div
@@ -145,6 +146,7 @@ export default function PayPage() {
                             ))}
                         </div>
                     </div>
+                    <div className='text-white font-bold my-8 text-3xl text-center' >Популярные брони</div>
                 </div>
             </div>
         </>
