@@ -1,11 +1,10 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate, useParams } from 'react-router-dom'
 import API from '../API/api'
 import { useAuth } from '../context/AuthContext'
 
 import GlowCard from '../components/GlowCard'
-import { div, li } from 'framer-motion/client'
 
 
 interface Listing {
@@ -54,6 +53,7 @@ export default function ListingPage() {
 	const [selectedImage, setSelectedImage] = useState(0)
 	const [guests, setGuests] = useState(1)
 	const [editing, setEditing] = useState(false)
+	const [date, setDate] = useState('')
 	const [editForm, setEditForm] = useState({
 		title: '', city: '', category: '', price_per_night: '',
 		max_guests: '', description: '', image_url: '', amenities: '',
@@ -411,6 +411,7 @@ export default function ListingPage() {
 									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">📅</span>
 									<input
 										type="date"
+										onChange={(e) => setDate(e.target.value)}
 										className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition"
 									/>
 								</div>
@@ -510,13 +511,23 @@ export default function ListingPage() {
 							<motion.button
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
-
+								onClick={() => {
+									navigate('/pay', {
+										state: {
+											listing,
+											guests,
+											date,
+											hours: listingtime,
+											total: listing.price_per_night * listingtime,
+										}
+									})
+								}}
 								className="w-full bg-[#f5a623] text-[#0f1629] font-bold py-3.5 rounded-xl hover:bg-[#e09610] transition text-lg"
 							>
-								<Link to="/pay" className="">
 
-									Подтвердить бронирование
-								</Link>
+
+								Подтвердить бронирование
+
 							</motion.button>
 
 							{/* Host info */}
