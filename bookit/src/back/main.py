@@ -55,6 +55,14 @@ class Listing(Base):
     amenities       = Column(String, default="")
     owner_id        = Column(Integer, default=0)
     status          = Column(String, default="approved")
+    booking_count = Column(Integer, default=0)
+
+class Booking(Base):
+    __tablename__ = "bookings"
+    id              = Column(Integer, primary_key=True)
+    listing_id           = Column(Integer)
+    user_id            = Column(Integer)
+    created_at        = Column(String)
 
 Base.metadata.create_all(engine)
 
@@ -66,6 +74,7 @@ for stmt in [
     "ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT 'renter'",
     "ALTER TABLE listings ADD COLUMN owner_id INTEGER DEFAULT 0",
     "ALTER TABLE listings ADD COLUMN status TEXT DEFAULT 'approved'",
+    "ALTER TABLE listings ADD COLUMN booking_count INTEGER DEFAULT 0",  # ← добавь
 ]:
     try:
         cursor.execute(stmt)
@@ -109,6 +118,7 @@ class ListingOut(ListingCreate):
     owner_id: int = 0
     status: str = "approved"
     model_config = {"from_attributes": True}
+    booking_count: int = 0  # ← добавить
 
 class ListingUpdate(BaseModel):
     title: Optional[str] = None
@@ -124,6 +134,15 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
 
+class BookingCreate(BaseModel):
+    listing_id: int
+
+class BookingOut(BaseModel):
+    id: int
+    listing_id: int  # ← добавь
+    user_id: int
+    created_at: str
+    model_config = {"from_attributes": True}  # ← обязательно, как в других Out схемах
 # --- Хелперы ---
 def get_db():
     db = SessionLocal()
@@ -302,6 +321,31 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     current_user.favorite_listings = ','.join(favorites)
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
+@app.post("/bookings/{listing_id}")
+def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: user = Depends(get_current_user)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    
+    booking = Booking(
+    listing_id=listing_id,
+    user_id=current_user.id,
+    created_at=str(datetime.utcnow()),
+    )
+    listing.booking_count += 1
+    history = set(current_user.booking_history.split(',')) if current_user.booking_history else set()
+    history.discard('')
+    
+    history.add(str(listing_id))
+    added = True
+    current_user.booking_history = ','.join(history)
+    db.add(booking)
+    db.commit()
+    return {"added" : added, "history": current_user.booking_history}
+@app.get("/bookings/my/", response_model=list[BookingOut])
+def get_booking(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return db.query(Booking).filter(Booking.user_id == current_user.id).all()
 
 @app.put("/users/me", response_model=UserOut)
 def update_user_info(data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -69,6 +69,7 @@ export default function UserPage() {
 			setTimeout(() => setSaveMsg(''), 3000)
 		}
 	}
+	
 
 	useEffect(() => {
 		async function fetchUser() {

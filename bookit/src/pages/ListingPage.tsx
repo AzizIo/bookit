@@ -78,6 +78,22 @@ export default function ListingPage() {
 		const { data } = await API.post(`/users/favorites/${listing!.id}`)
 		setIsFavorite(data.added)
 	}
+	async function bookingRequest(listingId) {
+    try {
+        await API.post(`/bookings/${listingId}`)
+        navigate('/pay', {
+            state: {
+                listing,
+                guests,
+                date,
+                hours: listingtime,
+                total: listing.price_per_night * listingtime,
+            }
+        })
+    } catch (error) {
+        console.error(error)
+    }
+}
 	useEffect(() => {
 		API.get(`/listings/${id}`)
 			.then((res) => {
@@ -511,17 +527,7 @@ export default function ListingPage() {
 							<motion.button
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
-								onClick={() => {
-									navigate('/pay', {
-										state: {
-											listing,
-											guests,
-											date,
-											hours: listingtime,
-											total: listing.price_per_night * listingtime,
-										}
-									})
-								}}
+								onClick={() => bookingRequest(listing.id) }
 								className="w-full bg-[#f5a623] text-[#0f1629] font-bold py-3.5 rounded-xl hover:bg-[#e09610] transition text-lg"
 							>
 
