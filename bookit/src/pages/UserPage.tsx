@@ -41,6 +41,7 @@ export default function UserPage() {
 	const [userName, setUserName] = useState('')
 	const [saving, setSaving] = useState(false)
 	const [saveMsg, setSaveMsg] = useState('')
+	const [mybook, setMybook] = useState([])
 
 	const tabs = [
 		{ id: 'bookings', label: 'БРОНИРОВАНИЯ' },
@@ -69,7 +70,7 @@ export default function UserPage() {
 			setTimeout(() => setSaveMsg(''), 3000)
 		}
 	}
-	
+
 
 	useEffect(() => {
 		async function fetchUser() {
@@ -93,6 +94,7 @@ export default function UserPage() {
 				const ids = freshUser.favorite_listings.split(',').filter(Boolean).map(Number)
 				const results = await Promise.all(ids.map((id: number) => API.get(`/listings/${id}`)))
 				setFavorites(results.map((res) => res.data))
+
 			} catch {
 				// ignore
 			}
@@ -106,9 +108,15 @@ export default function UserPage() {
 				console.log(res.data)
 				setMyListings(res.data)
 			})
-			.catch(() => {})
-		
-			
+			.catch(() => { })
+
+
+	}, [])
+	useEffect(() => {
+		API.get('/bookings/my/')
+			.then((res) => {
+				setMybook(res.data)
+			})
 	}, [])
 
 	const initials = user?.full_name
@@ -180,11 +188,10 @@ export default function UserPage() {
 								<button
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
-									className={`relative px-6 py-4 text-[11px] tracking-[0.2em] transition-colors duration-300 ${
-										activeTab === tab.id
+									className={`relative px-6 py-4 text-[11px] tracking-[0.2em] transition-colors duration-300 ${activeTab === tab.id
 											? 'text-white'
 											: 'text-zinc-600 hover:text-zinc-400'
-									}`}
+										}`}
 								>
 									{tab.label}
 									{activeTab === tab.id && (
@@ -203,26 +210,55 @@ export default function UserPage() {
 				{/* Content */}
 				<div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
 					<AnimatePresence mode="wait">
-						{activeTab === 'bookings' && (
-							<motion.div
-								key="bookings"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								transition={{ duration: 0.3 }}
-							>
-								<div className="py-20 text-center">
-									<p className="text-zinc-600 text-sm tracking-wider uppercase">Нет активных бронирований</p>
-									<button
-										onClick={() => navigate('/booking')}
-										className="mt-8 text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+						<div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
+							<AnimatePresence mode="wait">
+								{activeTab === 'bookings' && (
+									<motion.div
+										key="bookings"
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										exit={{ opacity: 0 }}
+										transition={{ duration: 0.3 }}
 									>
-										Найти пространство
-									</button>
-								</div>
-							</motion.div>
-						)}
+										{mybook.length === 0 ? (
+											<div className="py-20 text-center">
+												<p className="text-zinc-600 text-sm tracking-wider uppercase">
+													Нет активных бронирований
+												</p>
 
+												<button
+													onClick={() => navigate('/booking')}
+													className="mt-8 text-[11px] tracking-[0.2em] uppercase text-[#0f1629] bg-[#f5a623] px-8 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+												>
+													Найти пространство
+												</button>
+											</div>
+										) : (
+											<div className="space-y-4">
+												{mybook.map((booking) => (
+													<div
+														key={booking.id}
+														className="border border-zinc-200 rounded-2xl p-6"
+													>
+														<p className="font-semibold">
+															Бронь #{booking.id}
+														</p>
+
+														<p className="text-zinc-600 text-sm mt-2">
+															Listing ID: {booking.listing_id}
+														</p>
+
+														<p className="text-zinc-500 text-xs mt-1">
+															{booking.created_at}
+														</p>
+													</div>
+												))}
+											</div>
+										)}
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</div>
 						{activeTab === 'favorite' && (
 							<motion.div
 								key="favorite"
@@ -317,17 +353,16 @@ export default function UserPage() {
 														{l.image_url && (
 															<div className="w-full h-44 overflow-hidden relative">
 																<img src={l.image_url} alt={l.title} className="w-full h-full object-cover" />
-																
+
 															</div>
 														)}
 														<div className="p-5">
-															<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${
-																	l.status === 'approved' ? 'bg-green-500/90 text-white' :
+															<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${l.status === 'approved' ? 'bg-green-500/90 text-white' :
 																	l.status === 'pending' ? 'bg-amber-500/90 text-white' :
-																	'bg-red-500/90 text-white'
+																		'bg-red-500/90 text-white'
 																}`}>
-																	{l.status === 'approved' ? 'Активно' : l.status === 'pending' ? 'На проверке' : 'Отклонено'}
-																</span>
+																{l.status === 'approved' ? 'Активно' : l.status === 'pending' ? 'На проверке' : 'Отклонено'}
+															</span>
 															<h3 className="text-white text-sm font-semibold">{l.title}</h3>
 															<p className="text-zinc-500 text-xs mt-2">{l.city}</p>
 															<div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
