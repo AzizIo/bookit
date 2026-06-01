@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import avatar from '../assets/Avatar.png'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.webP'
 import { useAuth } from '../context/AuthContext'
 import Search from './search'
 

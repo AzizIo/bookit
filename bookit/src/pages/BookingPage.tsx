@@ -123,6 +123,7 @@ export default function BookingPage() {
 					</div>
 					<div className="flex items-center gap-2">
 						<button
+							aria-label='кнопка'
 							onClick={() => setViewMode('list')}
 							className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-[#f5a623] text-[#0f1629]' : 'bg-[#1a2035] text-zinc-400 border border-white/10'}`}
 						>
@@ -131,6 +132,7 @@ export default function BookingPage() {
 							</svg>
 						</button>
 						<button
+							aria-label='кнопка'
 							onClick={() => setViewMode('map')}
 							className={`p-2 rounded-lg transition ${viewMode === 'map' ? 'bg-[#f5a623] text-[#0f1629]' : 'bg-[#1a2035] text-zinc-400 border border-white/10'}`}
 						>
