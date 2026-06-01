@@ -30,6 +30,18 @@ interface UserData {
 	rating: number
 }
 
+interface BookingWithListing {
+    id: number
+    listing_id: number
+    user_id: number
+    created_at: string
+    title: string
+    city: string
+    price_per_night: number
+    image_url: string
+    category: string
+}
+
 export default function UserPage() {
 	const { user, setUser, logout } = useAuth()
 	const navigate = useNavigate()
@@ -41,7 +53,7 @@ export default function UserPage() {
 	const [userName, setUserName] = useState('')
 	const [saving, setSaving] = useState(false)
 	const [saveMsg, setSaveMsg] = useState('')
-	const [mybook, setMybook] = useState([])
+	const [mybook, setMybook] = useState<BookingWithListing[]>([])
 
 	const tabs = [
 		{ id: 'bookings', label: 'БРОНИРОВАНИЯ' },
@@ -189,8 +201,8 @@ export default function UserPage() {
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
 									className={`relative px-6 py-4 text-[11px] tracking-[0.2em] transition-colors duration-300 ${activeTab === tab.id
-											? 'text-white'
-											: 'text-zinc-600 hover:text-zinc-400'
+										? 'text-white'
+										: 'text-zinc-600 hover:text-zinc-400'
 										}`}
 								>
 									{tab.label}
@@ -235,23 +247,33 @@ export default function UserPage() {
 											</div>
 										) : (
 											<div className="space-y-4">
-												{mybook.map((booking) => (
-													<div
-														key={booking.id}
-														className="border border-zinc-200 rounded-2xl p-6"
+												{mybook.map((l, i) => (
+													<motion.div
+														key={l.id}
+														initial={{ opacity: 0, y: 30 }}
+														whileInView={{ opacity: 1, y: 0 }}
+														viewport={{ once: true }}
+														transition={{ duration: 0.4, delay: i * 0.1 }}
 													>
-														<p className="font-semibold">
-															Бронь #{booking.id}
-														</p>
-
-														<p className="text-zinc-600 text-sm mt-2">
-															Listing ID: {booking.listing_id}
-														</p>
-
-														<p className="text-zinc-500 text-xs mt-1">
-															{booking.created_at}
-														</p>
-													</div>
+														<GlowCard className="bg-[#1a2035] rounded-2xl overflow-hidden w-full shadow-xl border border-white/10 mx-auto">
+															<div className="w-full h-70 overflow-hidden">
+																<img src={l.image_url} alt="space" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+															</div>
+															<div className="p-4 py-4 flex flex-col gap-2">
+																<h2 className="text-white text-base font-semibold leading-tight">{l.title}</h2>
+																<div className="flex items-center gap-1 text-[#8b93a8] text-xs">
+																	<span>📍</span>
+																	<span>{l.city}</span>
+																</div>
+																<div className="flex items-center justify-between mt-1">
+																	<div className="text-white text-lg font-bold">
+																		<span className="text-[#f5a623]">₽{l.price_per_night}</span>
+																		<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
+																	</div>
+																</div>
+															</div>
+														</GlowCard>
+													</motion.div>
 												))}
 											</div>
 										)}
@@ -358,8 +380,8 @@ export default function UserPage() {
 														)}
 														<div className="p-5">
 															<span className={`absolute top-3 right-3 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-medium ${l.status === 'approved' ? 'bg-green-500/90 text-white' :
-																	l.status === 'pending' ? 'bg-amber-500/90 text-white' :
-																		'bg-red-500/90 text-white'
+																l.status === 'pending' ? 'bg-amber-500/90 text-white' :
+																	'bg-red-500/90 text-white'
 																}`}>
 																{l.status === 'approved' ? 'Активно' : l.status === 'pending' ? 'На проверке' : 'Отклонено'}
 															</span>

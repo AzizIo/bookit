@@ -63,6 +63,18 @@ class Booking(Base):
     listing_id           = Column(Integer)
     user_id            = Column(Integer)
     created_at        = Column(String)
+class BookingWithListing(BaseModel):
+    id: int
+    listing_id: int
+    user_id: int
+    created_at: str
+    # поля листинга
+    title: str = ""
+    city: str = ""
+    price_per_night: float = 0.0
+    image_url: str = ""
+    category: str = ""
+    model_config = {"from_attributes": True}
 
 Base.metadata.create_all(engine)
 
@@ -351,9 +363,24 @@ def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user
     db.add(booking)
     db.commit()
     return {"added" : added, "history": current_user.booking_history}
-@app.get("/bookings/my/", response_model=list[BookingOut])
+@app.get("/bookings/my/", response_model=list[BookingWithListing])
 def get_booking(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Booking).filter(Booking.user_id == current_user.id).all()
+    bookings = db.query(Booking).filter(Booking.user_id == current_user.id).all()
+    result = []
+    for b in bookings:
+        listing = db.query(Listing).filter(Listing.id == b.listing_id).first()
+        result.append(BookingWithListing(
+            id=b.id,
+            listing_id=b.listing_id,
+            user_id=b.user_id,
+            created_at=b.created_at,
+            title=listing.title if listing else "",
+            city=listing.city if listing else "",
+            price_per_night=listing.price_per_night if listing else 0.0,
+            image_url=listing.image_url if listing else "",
+            category=listing.category if listing else "",
+        ))
+    return result
 
 @app.put("/users/me", response_model=UserOut)
 def update_user_info(data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
