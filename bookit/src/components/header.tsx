@@ -4,6 +4,7 @@ import logo from '../assets/logo.webP'
 import { useAuth } from '../context/AuthContext'
 import Search from './search'
 
+
 export default function Header() {
 	const { user, logout } = useAuth()
 	const navigate = useNavigate()
@@ -12,6 +13,7 @@ export default function Header() {
 		logout()
 		navigate('/')
 	}
+	
 
 	return (
 		<>

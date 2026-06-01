@@ -224,7 +224,15 @@ def get_listings(city: str = None, category: str = None, q: str = None, db: Sess
 @app.get("/listings/three", response_model=list[ListingOut])
 def get_three_listings(db: Session = Depends(get_db)):
     return db.query(Listing).filter(Listing.status == "approved").limit(3).all()
-
+@app.get('/listing/popular', response_model=list[ListingOut])
+def get_popular(db: Session = Depends(get_db)):
+    return (
+        db.query(Listing)
+        .filter(Listing.booking_count > 0)
+        .order_by(Listing.booking_count.desc())
+        .limit(5)
+        .all()
+    )
 # пользователь отправляет объявление на модерацию (status=pending)
 @app.post("/listings/", response_model=ListingOut, status_code=201)
 def create_listing(data: ListingCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

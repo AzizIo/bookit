@@ -12,12 +12,13 @@ export default function PayPage() {
     const navigate = useNavigate()
     const { listing, guests, hours, total, date } = state
     const [hotList, setHotList] = useState([])
-
+    const [popularListings, setPopularListings] = useState([])
     const [bookingId] = useState(() => `BK-${Math.floor(Math.random() * 900000) + 100000}`)
 
 
     useEffect(() => {
         API.get('/listings/three').then((res) => setHotList(res.data))
+		API.get("/listing/popular").then((res1) => setPopularListings(res1.data))
     }, [])
 
     return (
@@ -147,6 +148,31 @@ export default function PayPage() {
                         </div>
                     </div>
                     <div className='text-white font-bold my-8 text-3xl text-center' >Популярные брони</div>
+                    {popularListings.map((l: Listing, i: number) => (
+                                <motion.div
+                                    key={l.id}
+                                    
+                                >
+                                    <div>
+                                        <div className=' bg-white/5 flex justify-between items-center' >
+                                            <div className='flex text-center m-8 ' >
+                                                <div className='m-4'><img className='w-32 rounded-2xl' src={l.image_url} alt="" /></div>
+                                                <div className='flex flex-col  m-4 text-white font-semibold '><div>{l.title}</div> <div>{l.city}</div></div>
+                                            </div>
+                                            <div className='m-4 items-center' >
+                                                <div>
+                                                    <div>
+                                                        Всего броней
+                                                    </div>
+                                                    <div>
+                                                        {l.booking_count}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
                 </div>
             </div>
         </>
