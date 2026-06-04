@@ -49,6 +49,7 @@ export default function AdminPage() {
 		catch {
 			setProblems([])
 		}
+		console.log(problems)
 
 	}
 
@@ -263,6 +264,9 @@ export default function AdminPage() {
 									)}
 								</motion.div>
 							))}
+						</AnimatePresence>
+					</div>
+				)}
 							<div>
 								{problems.map((p: Report) => (
 									<div key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4 p-5">
@@ -276,9 +280,6 @@ export default function AdminPage() {
 									</div>
 								))}
 							</div>
-						</AnimatePresence>
-					</div>
-				)}
 			</div>
 		</div>
 	)

@@ -64,7 +64,7 @@ class Booking(Base):
     user_id            = Column(Integer)
     created_at        = Column(String)
 
-class Reprot(Base):
+class Report(Base):
     __tablename__ = 'reports'
     id = Column(Integer, primary_key=True)
     title = Column(String)
@@ -363,9 +363,9 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     return {"added": added, "favorites": current_user.favorite_listings}
 @app.post("/reports/")
 def send_report(data: ReportCreate, db: Session = Depends(get_db)):
-    report = Reprot(
+    report = Report(
         title=data.title,
-        porblem=data.problem, 
+        problem=data.problem, 
         email=data.email,
     )
     db.add(report)
