@@ -1,7 +1,23 @@
 import { useState } from 'react'
 import bug from '../assets/bug.png'
+import API from "../API/api"
 export default function Bug() {
 	const [showBug, setShowBug] = useState(false)
+	const [title, setTitle] = useState("")
+	const [problem, setProblem] = useState("")
+	const [email, setEmail] = useState("")
+	const send_problem = function(){
+		API.post("/reports/", {
+			title: title,
+			problem: problem,
+			email: email
+		})
+		alert('Отправленно')
+		setTitle("")
+		setEmail("")
+		setProblem("")
+
+	}
 	return (
 		<>
 
@@ -28,22 +44,22 @@ export default function Bug() {
 						<form action="">
 							<div className='input flex flex-col gap-2'>
 								<label className='text-gray-400' htmlFor="theme">Тема</label>
-								<input className='bg-[#0f1629] rounded-lg p-2 text-white' type="text" name="theme" id="theme" placeholder='Кратко опишите проблему...' />
+								<input onChange={(e) => setTitle(e.target.value)} value={title} className='bg-[#0f1629] rounded-lg p-2 text-white' type="text" name="theme" id="theme" placeholder='Кратко опишите проблему...' />
 
 							</div>
 							<div className="input flex flex-col gap-2 mt-4">
 								<label className='text-gray-400' htmlFor="description">Описание проблемы</label>
-								<textarea className='bg-[#0f1629]  rounded-lg p-2 text-white' name="description" id="description" rows={4} placeholder='Опишите проблему...' ></textarea>
+								<textarea onChange={(e) => setProblem(e.target.value)} value={problem} className='bg-[#0f1629] rounded-lg p-2 text-white' name="description" id="description" rows={4} placeholder='Опишите проблему...' ></textarea>
 							</div>
 							<div className="input flex flex-col gap-2 mt-4">
 								<label className='text-gray-400' htmlFor="email">Ваш email (необязательно)</label>
-								<input className='bg-[#0f1629] rounded-lg p-2 text-white' type="email" name="email" id="email" placeholder='Ваш email...' />
+								<input onChange={(e) => setEmail(e.target.value)} value={email} className='bg-[#0f1629] rounded-lg p-2 text-white' type="email" name="email" id="email" placeholder='Ваш email...' />
 							</div>
 						</form>
 						<div className='flex gap-4 justify-center' >
 
 							<button onClick={() => setShowBug(false)} className='bg-[#3a3f5c] text-white font-semibold px-4 py-2 rounded-lg ml-2' >Отмена</button>
-							<button className='bg-[#ff0000] text-white text-lg font-semibold px-4 py-2 rounded-lg' >Отправить</button>
+							<button onClick={send_problem} className='bg-[#ff0000] text-white text-lg font-semibold px-4 py-2 rounded-lg' >Отправить</button>
 
 						</div>
 					</div>

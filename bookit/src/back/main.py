@@ -63,6 +63,15 @@ class Booking(Base):
     listing_id           = Column(Integer)
     user_id            = Column(Integer)
     created_at        = Column(String)
+
+class Reprot(Base):
+    __tablename__ = 'reports'
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    problem = Column(String)
+    email = Column(String, default="")
+
+
 class BookingWithListing(BaseModel):
     id: int
     listing_id: int
@@ -151,11 +160,22 @@ class BookingCreate(BaseModel):
 
 class BookingOut(BaseModel):
     id: int
-    listing_id: int  # ← добавь
+    listing_id: int  
     user_id: int
     created_at: str
-    model_config = {"from_attributes": True}  # ← обязательно, как в других Out схемах
+    model_config = {"from_attributes": True}  #
+class Reports(BaseModel):
+    id: int
+    title: str
+    problem: str
+    email: str
+    model_config = {"from_attributes": True}
+class ReportCreate(BaseModel):
+    title: str
+    problem: str
+    email: str = ""
 # --- Хелперы ---
+
 def get_db():
     db = SessionLocal()
     try:
@@ -341,6 +361,20 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     current_user.favorite_listings = ','.join(favorites)
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
+@app.post("/reports/")
+def send_report(data: ReportCreate, db: Session = Depends(get_db)):
+    report = Reprot(
+        title=data.title,
+        porblem=data.problem, 
+        email=data.email,
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
+@app.get("/reports/")
+def get_reports(db: Session = Depends(get_db)):
+    return db.query(Report).all()
 @app.post("/bookings/{listing_id}")
 def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: User = Depends(get_current_user)):
     listing = db.query(Listing).filter(Listing.id == listing_id).first()

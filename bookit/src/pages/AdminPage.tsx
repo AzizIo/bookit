@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import API from '../API/api'
+import { div } from 'framer-motion/client'
 
 interface Listing {
 	id: number
@@ -15,7 +16,12 @@ interface Listing {
 	owner_id: number
 	status: string
 }
-
+interface Report {
+    id: number
+    title: string
+    porblem: string  // опечатка из БД
+    email: string
+}
 const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#f5a623] bg-white"
 
 export default function AdminPage() {
@@ -23,6 +29,7 @@ export default function AdminPage() {
 	const [loading, setLoading] = useState(true)
 	const [editingId, setEditingId] = useState<number | null>(null)
 	const [editForm, setEditForm] = useState<Partial<Listing>>({})
+	const [problems, setProblems] = useState([])
 
 	async function fetchPending() {
 		setLoading(true)
@@ -34,8 +41,18 @@ export default function AdminPage() {
 		}
 		setLoading(false)
 	}
+	async function fetchProblem() {
+		try {
+			const { data } = await API.get("/reports/")
+			setProblems(data)
+		}
+		catch {
+			setProblems([])
+		}
 
-	useEffect(() => { fetchPending() }, [])
+	}
+
+	useEffect(() => { fetchPending(), fetchProblem() }, [])
 
 	async function handleApprove(id: number) {
 		try {
@@ -246,6 +263,19 @@ export default function AdminPage() {
 									)}
 								</motion.div>
 							))}
+							<div>
+								{problems.map((p: Report) => (
+									<div key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4 p-5">
+										<h3 className="text-lg font-semibold text-gray-800">{p.title}</h3>
+										<p className="text-gray-600 text-sm mt-2">{p.problem}</p>
+										{p.email && (
+											<a href={`mailto:${p.email}`} className="text-blue-600 text-sm mt-3 inline-block">
+												Ответить: {p.email}
+											</a>
+										)}
+									</div>
+								))}
+							</div>
 						</AnimatePresence>
 					</div>
 				)}
