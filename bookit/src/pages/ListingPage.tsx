@@ -2,9 +2,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import API from '../API/api'
-import { useAuth } from '../context/AuthContext'
-
+import Bug from '../components/bug'
 import GlowCard from '../components/GlowCard'
+import { useAuth } from '../context/AuthContext'
 
 
 interface Listing {
@@ -79,21 +79,21 @@ export default function ListingPage() {
 		setIsFavorite(data.added)
 	}
 	async function bookingRequest(listingId) {
-    try {
-        await API.post(`/bookings/${listingId}`)
-        navigate('/pay', {
-            state: {
-                listing,
-                guests,
-                date,
-                hours: listingtime,
-                total: listing.price_per_night * listingtime,
-            }
-        })
-    } catch (error) {
-        console.error(error)
-    }
-}
+		try {
+			await API.post(`/bookings/${listingId}`)
+			navigate('/pay', {
+				state: {
+					listing,
+					guests,
+					date,
+					hours: listingtime,
+					total: listing.price_per_night * listingtime,
+				}
+			})
+		} catch (error) {
+			console.error(error)
+		}
+	}
 	useEffect(() => {
 		API.get(`/listings/${id}`)
 			.then((res) => {
@@ -527,7 +527,7 @@ export default function ListingPage() {
 							<motion.button
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
-								onClick={() => bookingRequest(listing.id) }
+								onClick={() => bookingRequest(listing.id)}
 								className="w-full bg-[#f5a623] text-[#0f1629] font-bold py-3.5 rounded-xl hover:bg-[#e09610] transition text-lg"
 							>
 
@@ -559,6 +559,7 @@ export default function ListingPage() {
 					</motion.div>
 				</div>
 			</div>
+			<Bug />
 		</div>
 	)
 }

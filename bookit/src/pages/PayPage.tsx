@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import API from '../API/api'
 import check from '../assets/check2.png'
@@ -7,6 +7,7 @@ import kaligoscope from '../assets/kaleidoscope.png'
 import lupa from '../assets/lupa.png'
 import time from '../assets/time.png'
 import GlowCard from '../components/GlowCard'
+import Bug from '../components/bug'
 
 // ─── Confetti ────────────────────────────────────────────────────────────────
 const COLORS = ['#f5a623', '#ff6b6b', '#4ecdc4', '#a8e6cf', '#ffd93d', '#c77dff', '#74b9ff', '#fd79a8']
@@ -262,6 +263,7 @@ export default function PayPage() {
 
                 </div>
             </div>
+            <Bug />
         </>
     )
 }

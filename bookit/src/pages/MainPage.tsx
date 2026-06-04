@@ -1,17 +1,17 @@
+import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import API from '../API/api'
 import checkmark from '../assets/checkmark.png'
 import lupa from '../assets/lupa.png'
 import time from '../assets/time.png'
+import AnimatedCounter from '../components/AnimatedCounter'
 import Bug from '../components/bug'
+import CursorGradient from '../components/CursorGradient'
 import GlowCard from '../components/GlowCard'
 import GlowText from '../components/GlowText'
-import CursorGradient from '../components/CursorGradient'
-import ShimmerButton from '../components/ShimmerButton'
 import MagneticButton from '../components/MagneticButton'
-import AnimatedCounter from '../components/AnimatedCounter'
+import ShimmerButton from '../components/ShimmerButton'
 import TextReveal from '../components/TextReveal'
 
 export default function MainPage() {
@@ -142,62 +142,62 @@ export default function MainPage() {
 								viewport={{ once: true }}
 								transition={{ duration: 0.4, delay: i * 0.1 }}
 							>
-							<GlowCard
-								onClick={() => navigate(`/listing/${l.id}`)}
-								className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto"
-							>
-								{/* Картинка */}
-								<div className="w-full h-70 overflow-hidden">
-									<img src={l.image_url} alt="space" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-								</div>
-								{/* Контент */}
-								<div className="p-4 py-4 flex flex-col gap-2">
-									{/* Название */}
-									<h2 className="text-white text-base font-semibold leading-tight">
-										{l.title}
-									</h2>
-									{/* Локация */}
-									<div className="flex items-center gap-1 text-[#8b93a8] text-xs">
-										<span>📍</span>
-										<span>{l.city}</span>
+								<GlowCard
+									onClick={() => navigate(`/listing/${l.id}`)}
+									className="bg-[#1a2035] rounded-2xl overflow-hidden w-full max-w-[420px] shadow-xl border border-white/10 mx-auto"
+								>
+									{/* Картинка */}
+									<div className="w-full h-70 overflow-hidden">
+										<img src={l.image_url} alt="space" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
 									</div>
-
-									{/* Категория */}
-									<div className="flex items-center gap-1 text-xds">
-										<span className="text-[#f5a623]">🏷️</span>
-										<span className="text-[#f5a623] font-semibold">{l.category}</span>
-									</div>
-
-									{/* Удобства */}
-									<div className="flex items-center gap-2 flex-wrap mt-1">
-										{l.amenities.split(',').map((item, index) => (
-											<div
-												key={index}
-												className="flex items-center gap-1 text-[#8b93a8] text-xs
-      border border-white/10 rounded-lg px-2 py-1 bg-white/5"
-											>
-												<span>{item.trim()}</span>
-											</div>
-										))}
-									</div>
-
-									{/* Разделитель */}
-									<hr className="border-white/10 mt-1" />
-
-									{/* Цена + кнопка */}
-									<div className="flex items-center justify-between mt-1">
-										<div className="text-white text-lg font-bold">
-											<span className="text-[#f5a623]">₽{l.price_per_night}</span>
-											<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
+									{/* Контент */}
+									<div className="p-4 py-4 flex flex-col gap-2">
+										{/* Название */}
+										<h2 className="text-white text-base font-semibold leading-tight">
+											{l.title}
+										</h2>
+										{/* Локация */}
+										<div className="flex items-center gap-1 text-[#8b93a8] text-xs">
+											<span>📍</span>
+											<span>{l.city}</span>
 										</div>
-										<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold
-        px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
-											Забронировать
-										</button>
-									</div>
 
-								</div>
-							</GlowCard>
+										{/* Категория */}
+										<div className="flex items-center gap-1 text-xds">
+											<span className="text-[#f5a623]">🏷️</span>
+											<span className="text-[#f5a623] font-semibold">{l.category}</span>
+										</div>
+
+										{/* Удобства */}
+										<div className="flex items-center gap-2 flex-wrap mt-1">
+											{l.amenities.split(',').map((item, index) => (
+												<div
+													key={index}
+													className="flex items-center gap-1 text-[#8b93a8] text-xs
+      border border-white/10 rounded-lg px-2 py-1 bg-white/5"
+												>
+													<span>{item.trim()}</span>
+												</div>
+											))}
+										</div>
+
+										{/* Разделитель */}
+										<hr className="border-white/10 mt-1" />
+
+										{/* Цена + кнопка */}
+										<div className="flex items-center justify-between mt-1">
+											<div className="text-white text-lg font-bold">
+												<span className="text-[#f5a623]">₽{l.price_per_night}</span>
+												<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
+											</div>
+											<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold
+        px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">
+												Забронировать
+											</button>
+										</div>
+
+									</div>
+								</GlowCard>
 							</motion.div>
 						))}
 					</div>
@@ -308,9 +308,9 @@ export default function MainPage() {
 					</div>
 				</footer>
 
-			</div>
-			<div className=''>
-				<Bug />
+				<div className=''>
+					<Bug />
+				</div>
 			</div>
 		</>
 	)

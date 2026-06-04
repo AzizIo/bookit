@@ -1,7 +1,8 @@
+import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import API from '../API/api'
+import Bug from '../components/bug'
 import { useAuth } from '../context/AuthContext'
 
 const inp = "w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-sm text-[#ced0d3] outline-none focus:border-[#f5a623] transition placeholder-zinc-500"
@@ -151,6 +152,7 @@ export default function SubmitListingPage() {
 					</button>
 				</form>
 			</motion.div>
+			<Bug />
 		</div>
 	)
 }

@@ -342,7 +342,7 @@ def toggle_favorite(listing_id: int, db: Session = Depends(get_db), current_user
     db.commit()
     return {"added": added, "favorites": current_user.favorite_listings}
 @app.post("/bookings/{listing_id}")
-def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: user = Depends(get_current_user)):
+def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: User = Depends(get_current_user)):
     listing = db.query(Listing).filter(Listing.id == listing_id).first()
     if not listing:
         raise HTTPException(status_code=404, detail="Not found")

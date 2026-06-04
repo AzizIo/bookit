@@ -1,10 +1,11 @@
+import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import API from '../API/api'
-import { useAuth } from '../context/AuthContext'
-import GlowCard from '../components/GlowCard'
 import CursorGradient from '../components/CursorGradient'
+import GlowCard from '../components/GlowCard'
+import Bug from '../components/bug'
+import { useAuth } from '../context/AuthContext'
 
 interface Listing {
 	id: number
@@ -60,7 +61,7 @@ export default function BookingPage() {
 			if (favs) {
 				setFavoriteIds(new Set(favs.split(',').filter(Boolean).map(Number)))
 			}
-		}).catch(() => {})
+		}).catch(() => { })
 	}, [user])
 
 	async function toggleFavorite(e: React.MouseEvent, listingId: number) {
@@ -241,97 +242,98 @@ export default function BookingPage() {
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.4, delay: i * 0.08 }}
 								>
-								<GlowCard
-									onClick={() => navigate(`/listing/${l.id}`)}
-									className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 relative group"
-								>
-									{/* Favorite heart */}
-									<motion.button
-										whileHover={{ scale: 1.2 }}
-										whileTap={{ scale: 0.85 }}
-										onClick={(e) => toggleFavorite(e, l.id)}
-										className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 transition hover:bg-black/60"
-										title="В избранное"
+									<GlowCard
+										onClick={() => navigate(`/listing/${l.id}`)}
+										className="bg-[#1a2035] rounded-2xl overflow-hidden border border-white/10 relative group"
 									>
-										<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24"
-											fill={favoriteIds.has(l.id) ? '#f5a623' : 'none'}
-											stroke={favoriteIds.has(l.id) ? '#f5a623' : 'white'}
-											strokeWidth={2}
-										>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-										</svg>
-									</motion.button>
-									{/* Admin pencil */}
-									{isAdmin && (
+										{/* Favorite heart */}
 										<motion.button
-											initial={{ opacity: 0, scale: 0.8 }}
-											animate={{ opacity: 1, scale: 1 }}
-											whileHover={{ scale: 1.15 }}
-											whileTap={{ scale: 0.9 }}
-											onClick={(e) => {
-												e.stopPropagation()
-												navigate(`/listing/${l.id}`)
-											}}
-											className="absolute top-3 right-14 z-10 bg-[#f5a623] text-[#0f1629] p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-											title="Редактировать"
+											whileHover={{ scale: 1.2 }}
+											whileTap={{ scale: 0.85 }}
+											onClick={(e) => toggleFavorite(e, l.id)}
+											className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 transition hover:bg-black/60"
+											title="В избранное"
 										>
-											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+											<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24"
+												fill={favoriteIds.has(l.id) ? '#f5a623' : 'none'}
+												stroke={favoriteIds.has(l.id) ? '#f5a623' : 'white'}
+												strokeWidth={2}
+											>
+												<path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
 											</svg>
 										</motion.button>
-									)}
-									{l.image_url && (
-										<div className="w-full h-52 overflow-hidden">
-											<img src={l.image_url} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-										</div>
-									)}
-									<div className="p-5 flex flex-col gap-2">
-										<h3 className="text-white text-lg font-semibold">{l.title}</h3>
-										<div className="flex items-center gap-1 text-zinc-400 text-sm">
-											<span>📍</span>
-											<span>{l.city}</span>
-										</div>
-										<div className="flex items-center gap-2 text-sm">
-											<span className="text-[#f5a623]">🏷️</span>
-											<span className="text-[#f5a623] font-semibold">{l.category}</span>
-										</div>
-										{l.amenities && (
-											<div className="flex items-center gap-2 flex-wrap mt-1">
-												{l.amenities.split(',').map((a) => {
-													const trimmed = a.trim()
-													return (
-														<span
-															key={trimmed}
-															className="flex items-center gap-1 text-zinc-300 text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5"
-														>
-															{amenityIcons[trimmed] || ''} {trimmed}
-														</span>
-													)
-												})}
+										{/* Admin pencil */}
+										{isAdmin && (
+											<motion.button
+												initial={{ opacity: 0, scale: 0.8 }}
+												animate={{ opacity: 1, scale: 1 }}
+												whileHover={{ scale: 1.15 }}
+												whileTap={{ scale: 0.9 }}
+												onClick={(e) => {
+													e.stopPropagation()
+													navigate(`/listing/${l.id}`)
+												}}
+												className="absolute top-3 right-14 z-10 bg-[#f5a623] text-[#0f1629] p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+												title="Редактировать"
+											>
+												<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+													<path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+												</svg>
+											</motion.button>
+										)}
+										{l.image_url && (
+											<div className="w-full h-52 overflow-hidden">
+												<img src={l.image_url} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
 											</div>
 										)}
-										<hr className="border-white/10 mt-2" />
-										<div className="flex items-center justify-between mt-1">
-											<div className="text-white text-lg font-bold">
-												<span className="text-[#f5a623]">€{l.price_per_night}</span>
-												<span className="text-zinc-400 text-xs font-normal">/ночь</span>
+										<div className="p-5 flex flex-col gap-2">
+											<h3 className="text-white text-lg font-semibold">{l.title}</h3>
+											<div className="flex items-center gap-1 text-zinc-400 text-sm">
+												<span>📍</span>
+												<span>{l.city}</span>
 											</div>
-											<motion.button
-												whileHover={{ scale: 1.05 }}
-												whileTap={{ scale: 0.95 }}
-												className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95"
-											>
-												Забронировать
-											</motion.button>
+											<div className="flex items-center gap-2 text-sm">
+												<span className="text-[#f5a623]">🏷️</span>
+												<span className="text-[#f5a623] font-semibold">{l.category}</span>
+											</div>
+											{l.amenities && (
+												<div className="flex items-center gap-2 flex-wrap mt-1">
+													{l.amenities.split(',').map((a) => {
+														const trimmed = a.trim()
+														return (
+															<span
+																key={trimmed}
+																className="flex items-center gap-1 text-zinc-300 text-xs border border-white/10 rounded-lg px-2 py-1 bg-white/5"
+															>
+																{amenityIcons[trimmed] || ''} {trimmed}
+															</span>
+														)
+													})}
+												</div>
+											)}
+											<hr className="border-white/10 mt-2" />
+											<div className="flex items-center justify-between mt-1">
+												<div className="text-white text-lg font-bold">
+													<span className="text-[#f5a623]">€{l.price_per_night}</span>
+													<span className="text-zinc-400 text-xs font-normal">/ночь</span>
+												</div>
+												<motion.button
+													whileHover={{ scale: 1.05 }}
+													whileTap={{ scale: 0.95 }}
+													className="bg-[#f5a623] text-[#0f1629] text-sm font-bold px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95"
+												>
+													Забронировать
+												</motion.button>
+											</div>
 										</div>
-									</div>
-								</GlowCard>
+									</GlowCard>
 								</motion.div>
 							))}
 						</div>
 					)}
 				</div>
 			</div>
+			<Bug />
 		</div>
 	)
 }
