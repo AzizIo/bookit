@@ -375,6 +375,10 @@ def send_report(data: ReportCreate, db: Session = Depends(get_db)):
 @app.get("/reports/")
 def get_reports(db: Session = Depends(get_db)):
     return db.query(Report).all()
+@app.delete("/reports/{report_id}", status_code=204)
+def delete_report(report_id: int, db: Session = Depends(get_db)):
+    db.query(Report).filter(Report.id == report_id).delete()
+    db.commit()
 @app.post("/bookings/{listing_id}")
 def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: User = Depends(get_current_user)):
     listing = db.query(Listing).filter(Listing.id == listing_id).first()

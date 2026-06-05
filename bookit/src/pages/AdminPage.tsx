@@ -17,10 +17,10 @@ interface Listing {
 	status: string
 }
 interface Report {
-    id: number
-    title: string
-    porblem: string  // опечатка из БД
-    email: string
+	id: number
+	title: string
+	porblem: string  // опечатка из БД
+	email: string
 }
 const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#f5a623] bg-white"
 
@@ -51,6 +51,14 @@ export default function AdminPage() {
 		}
 		console.log(problems)
 
+	}
+	async function handleDeleteReport(id: number) {
+		try {
+			await API.delete(`/reports/${id}`)
+			setProblems((prev) => prev.filter((p) => p.id !== id))
+		} catch {
+			// ignore
+		}
 	}
 
 	useEffect(() => { fetchPending(), fetchProblem() }, [])
@@ -267,19 +275,31 @@ export default function AdminPage() {
 						</AnimatePresence>
 					</div>
 				)}
+				<div>
+					<div className='w-full text-center my-8' >
+						<div className='font-bold text-2xl'>
+							Жалобы
+						</div>
+					</div>
+					{problems.map((p: Report) => (
+						<div key={p.id} className="bg-white rounded-xl border flex justify-between  border-gray-200 shadow-sm overflow-hidden mb-4 p-5">
 							<div>
-								{problems.map((p: Report) => (
-									<div key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4 p-5">
-										<h3 className="text-lg font-semibold text-gray-800">{p.title}</h3>
-										<p className="text-gray-600 text-sm mt-2">{p.problem}</p>
-										{p.email && (
-											<a href={`mailto:${p.email}`} className="text-blue-600 text-sm mt-3 inline-block">
-												Ответить: {p.email}
-											</a>
-										)}
-									</div>
-								))}
+								<h3 className="text-lg font-bold text-gray-800">Тема: {p.title}</h3>
+								<p className=" text-xl mt-2">Проблема: {p.problem}</p>
+								{p.email && (
+									<div className='mt-2 text-sm text-blue-600' >Почта отправителя: {p.email}</div>
+								)}
 							</div>
+							<div onClick={() => handleDeleteReport(p.id)} className='flex items-center gap-2 mt-16 bg-zinc-100 px-4 py-2 rounded-lg hover:bg-zinc-200' >
+								<button>Просмотренно</button>
+								<div><svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+									<path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.078c4.418 0 8-5 8-5s-3.582-5-8-5-8 5-8 5 3.582 5 8 5zm0-2a3 3 0 100-6 3 3 0 000 6zm0-1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="#000"></path>
+								</svg></div>
+							</div>
+						</div>
+					))}
+
+				</div>
 			</div>
 		</div>
 	)
