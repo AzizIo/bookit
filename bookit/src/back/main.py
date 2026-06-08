@@ -8,6 +8,9 @@ from typing import Optional
 from jose import jwt, JWTError
 import bcrypt
 from datetime import datetime, timedelta
+from sqlalchemy import UniqueConstraint
+from sqlalchemy import ForeignKey, func
+from fastapi import Body
 
 SECRET_KEY = "asdasdjj"
 ALGORITHM = "HS256"
@@ -57,6 +60,9 @@ class Listing(Base):
     status          = Column(String, default="approved")
     booking_count = Column(Integer, default=0)
 
+    average_rating  = Column(Float, default=0)
+    reviews_count   = Column(Integer, default=0)
+
 class Booking(Base):
     __tablename__ = "bookings"
     id              = Column(Integer, primary_key=True)
@@ -71,6 +77,21 @@ class Report(Base):
     problem = Column(String)
     email = Column(String, default="")
 
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True)
+    listing_id = Column(Integer, ForeignKey("listings.id"))
+    user_id = Column(Integer)
+    rating = Column(Integer)  # 1-5 звезд
+    comment = Column(String, default="")
+    __table_args__ = (
+        UniqueConstraint(
+            "listing_id",
+            "user_id",
+            name="unique_user_review"
+        ),
+    )
 
 class BookingWithListing(BaseModel):
     id: int
@@ -95,7 +116,9 @@ for stmt in [
     "ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT 'renter'",
     "ALTER TABLE listings ADD COLUMN owner_id INTEGER DEFAULT 0",
     "ALTER TABLE listings ADD COLUMN status TEXT DEFAULT 'approved'",
-    "ALTER TABLE listings ADD COLUMN booking_count INTEGER DEFAULT 0",  # ← добавь
+    "ALTER TABLE listings ADD COLUMN booking_count INTEGER DEFAULT 0",
+    "ALTER TABLE listings ADD COLUMN average_rating FLOAT DEFAULT 0",
+    "ALTER TABLE listings ADD COLUMN reviews_count INTEGER DEFAULT 0",
 ]:
     try:
         cursor.execute(stmt)
@@ -140,6 +163,8 @@ class ListingOut(ListingCreate):
     status: str = "approved"
     model_config = {"from_attributes": True}
     booking_count: int = 0  # ← добавить
+    average_rating: float = 0.0
+    reviews_count: int = 0
 
 class ListingUpdate(BaseModel):
     title: Optional[str] = None
@@ -285,6 +310,17 @@ def get_listing(listing_id: int, db: Session = Depends(get_db)):
     if not listing:
         raise HTTPException(status_code=404, detail="Not found")
     return listing
+
+@app.get("/listings/{listing_id}/rating")
+def get_listing_rating(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {
+        "listing_id": listing.id,
+        "average_rating": float(listing.average_rating or 0.0),
+        "reviews_count": int(listing.reviews_count or 0),
+    }
 
 @app.put("/listings/{listing_id}", response_model=ListingOut)
 def update_listing(listing_id: int, data: ListingCreate, db: Session = Depends(get_db)):
@@ -432,3 +468,100 @@ def update_user_info(data: UserUpdate, db: Session = Depends(get_db), current_us
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@app.post("/reviews/{listing_id}")
+def add_review(
+    listing_id: int,
+    rating: int = Body(...),
+    comment: str = Body(""),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if rating < 1 or rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+
+    review = db.query(Review).filter(
+        Review.listing_id == listing_id,
+        Review.user_id == current_user.id
+    ).first()
+
+    if review:
+        raise HTTPException(status_code=400, detail="Already reviewed")
+
+    review = Review(
+        listing_id=listing_id,
+        user_id=current_user.id,
+        rating=rating,
+        comment=comment
+    )
+
+    old_count = listing.reviews_count or 0
+    listing.reviews_count = old_count + 1
+    listing.average_rating = (
+        (listing.average_rating or 0) * old_count + rating
+    ) / listing.reviews_count
+
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    db.refresh(listing)
+    return {
+        "id": review.id,
+        "listing_id": review.listing_id,
+        "user_id": review.user_id,
+        "rating": review.rating,
+        "comment": review.comment,
+    }
+
+
+@app.get("/reviews/featured")
+@app.get("/reviews/featured/")
+def get_featured_review(db: Session = Depends(get_db)):
+    review = db.query(Review).filter(Review.rating == 5).order_by(Review.id.desc()).first()
+    if not review:
+        review = db.query(Review).order_by(Review.id.desc()).first()
+    if not review:
+        return {
+            "id": 0,
+            "listing_id": None,
+            "user_id": None,
+            "rating": 5,
+            "comment": "Пока нет отзывов, но скоро здесь появится лучший отзыв.",
+            "user_name": "Пользователь",
+            "listing_title": "",
+        }
+    user = db.query(User).filter(User.id == review.user_id).first()
+    listing = db.query(Listing).filter(Listing.id == review.listing_id).first()
+    return {
+        "id": review.id,
+        "listing_id": review.listing_id,
+        "user_id": review.user_id,
+        "rating": review.rating,
+        "comment": review.comment,
+        "user_name": user.full_name if user else "Пользователь",
+        "listing_title": listing.title if listing else "",
+    }
+
+
+@app.get("/reviews/{listing_id}")
+def get_reviews(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    reviews = db.query(Review).filter(Review.listing_id == listing_id).all()
+    result = []
+    for r in reviews:
+        user = db.query(User).filter(User.id == r.user_id).first()
+        result.append({
+            "id": r.id,
+            "listing_id": r.listing_id,
+            "user_id": r.user_id,
+            "rating": r.rating,
+            "comment": r.comment,
+            "user_name": user.full_name if user else None,
+        })
+    return result

@@ -90,15 +90,17 @@ export default function PayPage() {
     const { listing, guests, hours, total, date } = state
     const [hotList, setHotList] = useState([])
     const [popularListings, setPopularListings] = useState([])
+    const [listingRating, setListingRating] = useState<{ average_rating: number; reviews_count: number } | null>(null)
     const [bookingId] = useState(() => `BK-${Math.floor(Math.random() * 900000) + 100000}`)
     const { canvasRef, launch } = useConfetti()
 
     useEffect(() => {
         API.get('/listings/three').then((res) => setHotList(res.data))
         API.get("/listing/popular").then((res1) => setPopularListings(res1.data))
+        API.get(`/listings/${listing.id}/rating`).then((res) => setListingRating(res.data)).catch(() => {})
         const t = setTimeout(launch, 400)
         return () => clearTimeout(t)
-    }, [])
+    }, [listing.id, launch])
 
     return (
         <>
@@ -116,8 +118,13 @@ export default function PayPage() {
                         <div className="flex justify-between mt-4">
                             <div className="px-4 py-2">
                                 <div className="text-white font-semibold text-2xl">{listing.title}</div>
-                                <div className="text-zinc-500 my-4">Бронирвоание #{bookingId}</div>
-                            </div>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-[#f5a623]">
+                            <span>★</span>
+                            <span>{listingRating ? listingRating.average_rating.toFixed(1) : '—'}</span>
+                            <span className="text-white/60">({listingRating ? listingRating.reviews_count : 0} отзывов)</span>
+                        </div>
+                        <div className="text-zinc-500 my-4">Бронирвоание #{bookingId}</div>
+                    </div>
                             <div className="px-4 py-2 text-right">
                                 <div className="text-[#f5a623] font-bold text-2xl">{total}</div>
                                 <div className="text-zinc-500 my-4">Сумма</div>
@@ -176,7 +183,7 @@ export default function PayPage() {
                         </div>
                     </div>
                     <div className='flex flex-col gap-4 mt-8 md:flex-row'>
-                        <button className='w-full bg-[#f5a623] text-[#0f1629] font-bold py-4 rounded-xl hover:bg-[#e09610] transition text-lg'>
+                        <button onClick={() => navigate('/user')} className='w-full bg-[#f5a623] text-[#0f1629] font-bold py-4 rounded-xl hover:bg-[#e09610] transition text-lg'>
                             Просмотр Моих бронирований
                         </button>
                         <button onClick={() => navigate('/')} className='w-full bg-zinc-700 text-white font-bold py-4 rounded-xl hover:bg-zinc-600 transition text-lg'>
@@ -252,7 +259,7 @@ export default function PayPage() {
                                     <div className="flex flex-col items-end gap-1 shrink-0">
                                         <span className="text-white font-bold text-lg flex items-center gap-1">
                                             <span className="text-yellow-400">★</span>
-                                            {l.rating ?? "—"}
+                                            {l.average_rating ? l.average_rating.toFixed(1) : "—"}
                                         </span>
                                         <span className="text-white/50 text-sm">{l.booking_count} броней</span>
                                     </div>

@@ -14,6 +14,13 @@ import MagneticButton from '../components/MagneticButton'
 import ShimmerButton from '../components/ShimmerButton'
 import TextReveal from '../components/TextReveal'
 
+const featuredReview = {
+	name: 'Sarah Chen',
+	role: 'Менеджер продуктов',
+	rating: 5,
+	text: 'С BookIt найти идеальное пространство для встреч стало невероятно просто. Процесс бронирования был безупречным!',
+}
+
 export default function MainPage() {
 	const navigate = useNavigate()
 	interface Listing {
@@ -26,11 +33,26 @@ export default function MainPage() {
 		description: string
 		amenities: string
 		image_url: string
+		average_rating?: number
+		reviews_count?: number
 	}
 	const [searchTerm, setSearchTerm] = useState('')
 	const [AllListings, setAllListings] = useState<Listing[]>([])
+	const [featuredReviewData, setFeaturedReviewData] = useState<{name: string; rating: number; text: string; role: string} | null>(null)
 	useEffect(() => {
 		API.get('/listings/three').then((res) => setAllListings(res.data))
+		API.get('/reviews/featured')
+			.then((res) => {
+				setFeaturedReviewData({
+					name: res.data.user_name || 'Пользователь',
+					rating: res.data.rating || 5,
+					text: res.data.comment || 'Отличное пространство!',
+					role: res.data.listing_title ? `${res.data.listing_title}` : 'Проверенный пользователь',
+				})
+			})
+			.catch(() => {
+				setFeaturedReviewData(null)
+			})
 	}, [])
 	return (
 		<>
@@ -161,8 +183,11 @@ export default function MainPage() {
 											<span>📍</span>
 											<span>{l.city}</span>
 										</div>
-
-										{/* Категория */}
+									<div className="flex items-center gap-2 text-[#8b93a8] text-xs">
+										<span className="text-yellow-400">★</span>
+										<span className="text-white font-semibold">{(l.average_rating ?? 0).toFixed(1)}</span>
+										<span>({l.reviews_count ?? 0})</span>
+									</div>
 										<div className="flex items-center gap-1 text-xds">
 											<span className="text-[#f5a623]">🏷️</span>
 											<span className="text-[#f5a623] font-semibold">{l.category}</span>
@@ -260,7 +285,7 @@ export default function MainPage() {
 							<GlowCard className="bg-[#1a2332] rounded-2xl max-w-sm shadow-lg">
 								<div className="p-6">
 									<div className="flex gap-1 mb-4">
-										{[...Array(5)].map((_, i) => (
+										{[...Array(featuredReviewData?.rating ?? featuredReview.rating)].map((_, i) => (
 											<motion.span
 												key={i}
 												initial={{ opacity: 0, scale: 0 }}
@@ -268,12 +293,13 @@ export default function MainPage() {
 												viewport={{ once: true }}
 												transition={{ delay: 0.3 + i * 0.1, type: 'spring', stiffness: 300 }}
 												className="text-yellow-400 text-xl"
-											>★</motion.span>
+											>
+												★</motion.span>
 										))}
 									</div>
 
 									<p className="text-white text-base leading-relaxed mb-6">
-										С BookIt найти идеальное пространство для встреч стало невероятно просто. Процесс бронирования был безупречным!
+										{featuredReviewData?.text ?? featuredReview.text}
 									</p>
 
 									<div className="flex items-center gap-3">
@@ -283,8 +309,8 @@ export default function MainPage() {
 											</svg>
 										</div>
 										<div>
-											<p className="text-white font-semibold text-sm">Sarah Chen</p>
-											<p className="text-gray-400 text-xs">Менеджер продуктов</p>
+											<p className="text-white font-semibold text-sm">{featuredReviewData?.name ?? featuredReview.name}</p>
+											<p className="text-gray-400 text-xs">{featuredReviewData?.role ?? featuredReview.role}</p>
 										</div>
 									</div>
 								</div>

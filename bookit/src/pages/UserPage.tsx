@@ -54,6 +54,11 @@ export default function UserPage() {
 	const [saving, setSaving] = useState(false)
 	const [saveMsg, setSaveMsg] = useState('')
 	const [mybook, setMybook] = useState<BookingWithListing[]>([])
+	const [reviewingId, setReviewingId] = useState<number | null>(null)
+	const [reviewRating, setReviewRating] = useState(5)
+	const [reviewComment, setReviewComment] = useState('')
+	const [reviewStatus, setReviewStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+	const [reviewMessage, setReviewMessage] = useState('')
 
 	const tabs = [
 		{ id: 'bookings', label: 'БРОНИРОВАНИЯ' },
@@ -135,6 +140,25 @@ export default function UserPage() {
 		? user.full_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
 		: '?'
 
+	async function handleSendReview(listingId: number) {
+		setReviewStatus('sending')
+		setReviewMessage('')
+		try {
+			await API.post(`/reviews/${listingId}`, {
+				rating: reviewRating,
+				comment: reviewComment,
+			})
+			setReviewStatus('success')
+			setReviewMessage('Отзыв отправлен')
+			setReviewingId(null)
+			setReviewComment('')
+		} catch (e: unknown) {
+			const err = e as { response?: { data?: { detail?: string } } }
+			setReviewStatus('error')
+			setReviewMessage(err.response?.data?.detail || 'Ошибка отправки отзыва')
+		}
+	}
+
 	const bookingCount = userData?.booking_history?.split(',').filter(Boolean).length || 0
 	const favoriteCount = userData?.favorite_listings?.split(',').filter(Boolean).length || 0
 
@@ -155,10 +179,10 @@ export default function UserPage() {
 								<div className="w-16 h-16 rounded-full bg-[#1a2035] border border-[#f5a623]/30 flex items-center justify-center text-[#f5a623] text-lg font-light tracking-widest">
 									{initials}
 								</div>
-								<div>
-									<h1 className="text-white text-2xl font-light tracking-wide uppercase">
-										{user?.full_name || 'Пользователь'}
-									</h1>
+													<div>
+														<h1 className="text-white text-2xl font-light tracking-wide uppercase">
+															{user?.full_name || 'Пользователь'}
+														</h1>
 									<p className="text-zinc-500 text-sm tracking-wider mt-1">{user?.email}</p>
 								</div>
 							</div>
@@ -270,7 +294,59 @@ export default function UserPage() {
 																		<span className="text-[#f5a623]">₽{l.price_per_night}</span>
 																		<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
 																	</div>
+																	<button
+																		className="text-[11px] tracking-[0.15em] uppercase text-[#0f1629] bg-[#f5a623] px-3 py-2 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold"
+																		onClick={() => {
+																			setReviewingId(reviewingId === l.listing_id ? null : l.listing_id)
+																			setReviewRating(5)
+																			setReviewComment('')
+																		}}
+																	>
+																		{reviewingId === l.listing_id ? 'Скрыть отзыв' : 'Оставить отзыв'}
+																	</button>
 																</div>
+																{reviewingId === l.listing_id && (
+																	<div className="mt-4 rounded-2xl border border-white/10 bg-[#111827] p-4">
+																		<label className="text-xs text-zinc-400 uppercase tracking-[0.2em] mb-2 block">Рейтинг</label>
+																		<select
+																				value={reviewRating}
+																				onChange={(e) => setReviewRating(Number(e.target.value))}
+																				className="w-full rounded-xl border border-white/10 bg-[#1a2035] px-4 py-3 text-white outline-none"
+																		>
+																				{[1, 2, 3, 4, 5].map((value) => (
+																					<option key={value} value={value}>{value}</option>
+																				))}
+																		</select>
+																		<label className="text-xs text-zinc-400 uppercase tracking-[0.2em] mb-2 block mt-4">Комментарий</label>
+																		<textarea
+																				value={reviewComment}
+																				onChange={(e) => setReviewComment(e.target.value)}
+																				rows={4}
+																				className="w-full rounded-xl border border-white/10 bg-[#1a2035] px-4 py-3 text-white outline-none resize-none"
+																				placeholder="Оставьте отзыв о бронировании"
+																		/>
+																		<div className="mt-4 flex flex-wrap gap-3 justify-end">
+																			<button
+																				className="text-[11px] tracking-[0.15em] uppercase text-[#0f1629] bg-[#f5a623] px-4 py-3 rounded-xl hover:bg-[#e09610] transition-all duration-300 font-semibold disabled:opacity-50"
+																				onClick={() => handleSendReview(l.listing_id)}
+																				disabled={reviewStatus === 'sending'}
+																			>
+																				{reviewStatus === 'sending' ? 'Отправка...' : 'Отправить'}
+																			</button>
+																			<button
+																				className="text-[11px] tracking-[0.15em] uppercase text-white border border-white/10 px-4 py-3 rounded-xl hover:bg-white/5 transition-all duration-300"
+																				onClick={() => setReviewingId(null)}
+																			>
+																				Отмена
+																			</button>
+																		</div>
+																		{reviewMessage && (
+																			<p className={`text-xs mt-3 ${reviewStatus === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+																				{reviewMessage}
+																			</p>
+																		)}
+																	</div>
+																)}
 															</div>
 														</GlowCard>
 													</motion.div>

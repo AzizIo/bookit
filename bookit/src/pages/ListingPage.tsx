@@ -17,6 +17,8 @@ interface Listing {
 	description: string
 	image_url: string
 	amenities: string
+    average_rating?: number
+    reviews_count?: number
 }
 
 const amenityData: Record<string, { icon: string; label: string }> = {
@@ -50,6 +52,9 @@ export default function ListingPage() {
 	const { user } = useAuth()
 	const [listing, setListing] = useState<Listing | null>(null)
 	const [loading, setLoading] = useState(true)
+	const [reviews, setReviews] = useState<any[]>([])
+	const [avgRating, setAvgRating] = useState<number | null>(null)
+	const [reviewsCount, setReviewsCount] = useState<number | null>(null)
 	const [selectedImage, setSelectedImage] = useState(0)
 	const [guests, setGuests] = useState(1)
 	const [editing, setEditing] = useState(false)
@@ -98,6 +103,8 @@ export default function ListingPage() {
 		API.get(`/listings/${id}`)
 			.then((res) => {
 				setListing(res.data)
+				setAvgRating(res.data.average_rating ?? res.data.average_rating)
+				setReviewsCount(res.data.reviews_count ?? res.data.reviews_count)
 				setEditForm({
 					title: res.data.title,
 					city: res.data.city,
@@ -112,6 +119,36 @@ export default function ListingPage() {
 			.catch(() => navigate('/booking'))
 			.finally(() => setLoading(false))
 	}, [id, navigate])
+
+	useEffect(() => {
+		async function fetchReviews() {
+			if (!id) return
+			try {
+				const r = await API.get(`/reviews/${id}`)
+				setReviews(r.data || [])
+				setReviewsCount((r.data && Array.isArray(r.data)) ? r.data.length : reviewsCount)
+			} catch (e) {
+				// fallback: ignore
+			}
+		}
+		fetchReviews()
+	}, [id])
+
+	useEffect(() => {
+		async function fetchRating() {
+			if (!id) return
+			try {
+				const r = await API.get(`/listings/${id}/rating`)
+				if (r?.data) {
+					setAvgRating(r.data.average_rating ?? r.data.average ?? null)
+					setReviewsCount(r.data.reviews_count ?? r.data.count ?? reviewsCount)
+				}
+			} catch (e) {
+				// ignore
+			}
+		}
+		fetchRating()
+	}, [id])
 
 	async function handleSave() {
 		if (!listing) return
@@ -203,8 +240,8 @@ export default function ListingPage() {
 				>
 					<div className="flex items-center gap-1">
 						<span className="text-yellow-400">★</span>
-						<span className="text-white font-semibold">4.9</span>
-						<span className="text-zinc-400 text-sm">(124 отзыва)</span>
+						<span className="text-white font-semibold">{((avgRating ?? listing.average_rating) ?? 0).toFixed(1)}</span>
+						<span className="text-zinc-400 text-sm">({(reviewsCount ?? listing.reviews_count ?? reviews.length) || 0} отзывов)</span>
 					</div>
 					<span className="text-zinc-500">•</span>
 					<span className="text-zinc-400 text-sm">📍 {listing.city}</span>
@@ -375,33 +412,39 @@ export default function ListingPage() {
 							<h2 className="text-white text-2xl font-bold mb-2">Отзывы</h2>
 							<div className="flex items-center gap-2 mb-6">
 								<span className="text-yellow-400 text-xl">★</span>
-								<span className="text-white text-2xl font-bold">4.9</span>
-								<span className="text-zinc-400 text-sm">На основе 124 отзывов</span>
+								<span className="text-white text-2xl font-bold">{((avgRating ?? listing.average_rating) ?? 0).toFixed(1)}</span>
+								<span className="text-zinc-400 text-sm">На основе {(reviewsCount ?? listing.reviews_count ?? reviews.length) || 0} отзывов</span>
 							</div>
 							<div className="flex flex-col gap-4">
-								{fakeReviews.map((review, i) => (
-									<motion.div
-										key={i}
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: 0.5 + i * 0.15 }}
-									>
-										<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
-											<div className="flex items-center justify-between mb-3">
-												<div>
-													<p className="text-white font-semibold text-sm">{review.name}</p>
-													<p className="text-zinc-500 text-xs">{review.date}</p>
+								{(reviews.length ? reviews : fakeReviews).map((review: any, i: number) => {
+									const name = review.name || review.user_name || (review.user && review.user.full_name) || 'Пользователь'
+									const date = review.date || review.created_at || review.created || ''
+									const rating = review.rating ?? review.stars ?? 5
+									const text = review.text || review.comment || review.body || ''
+									return (
+										<motion.div
+											key={i}
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{ delay: 0.5 + i * 0.15 }}
+										>
+											<GlowCard className="bg-[#1a2035] border border-white/10 rounded-2xl p-5">
+												<div className="flex items-center justify-between mb-3">
+													<div>
+														<p className="text-white font-semibold text-sm">{name}</p>
+														<p className="text-zinc-500 text-xs">{date}</p>
+													</div>
+													<div className="flex gap-0.5">
+														{[...Array(Math.max(0, Math.min(5, rating)))].map((_, j) => (
+															<span key={j} className="text-yellow-400 text-sm">★</span>
+														))}
+													</div>
 												</div>
-												<div className="flex gap-0.5">
-													{[...Array(review.rating)].map((_, j) => (
-														<span key={j} className="text-yellow-400 text-sm">★</span>
-													))}
-												</div>
-											</div>
-											<p className="text-zinc-400 text-sm">{review.text}</p>
-										</GlowCard>
-									</motion.div>
-								))}
+												<p className="text-zinc-400 text-sm">{text}</p>
+											</GlowCard>
+										</motion.div>
+									)
+								})}
 							</div>
 						</motion.div>
 					</div>
