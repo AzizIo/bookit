@@ -213,7 +213,7 @@ export default function MainPage() {
 										<div className="flex items-center justify-between mt-1">
 											<div className="text-white text-lg font-bold">
 												<span className="text-[#f5a623]">₽{l.price_per_night}</span>
-												<span className="text-[#8b93a8] text-xs font-normal">/ночь</span>
+												<span className="text-[#8b93a8] text-xs font-normal"> /ночь</span>
 											</div>
 											<button className="bg-[#f5a623] text-[#0f1629] text-sm font-bold
         px-4 py-2 rounded-xl hover:bg-[#e09610] transition active:scale-95">

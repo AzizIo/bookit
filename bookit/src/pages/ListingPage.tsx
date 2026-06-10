@@ -551,7 +551,7 @@ export default function ListingPage() {
 											<div className='font-bold text-white' >
 												Total
 											</div>
-											<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}$</div>
+											<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}₽</div>
 										</div>
 									</div> :
 

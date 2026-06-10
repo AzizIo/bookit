@@ -25,17 +25,16 @@ export default function Header() {
 						<Link to="/" className="logo text-lg font-semibold text-white hover:text-[#f5a623] transition">Bookit</Link>
 					</div>
 
-					<div className="hidden md:flex items-center gap-6">
-						{user?.role === 'admin' && (
-							<Link to="/admin" className="text-white hover:text-[#f5a623] transition font-medium">Модерация</Link>
-						)}
-						{user && (
-							<Link to="/submit" className="text-white hover:text-[#f5a623] transition font-medium">Разместить</Link>
-						)}
-						<Search />
+<div className="hidden md:flex items-center gap-2">
+				{user?.role === 'admin' && (
+					<Link to="/admin" className="bg-[#f5a623] text-[#0f1629] font-semibold px-3 py-2 rounded-xl hover:bg-[#e09610] transition text-sm">🛠️</Link>
+				)}
+				{user && (
+					<Link to="/submit" className="bg-[#f5a623] text-[#0f1629] font-semibold px-3 py-2 rounded-xl hover:bg-[#e09610] transition text-sm">➕</Link>
+				)}
 					</div>
 
-					<div className="accoutn flex flex-row items-center gap-4">
+					<div className="account flex flex-row items-center gap-4">
 						{user ? (
 							<>
 								<Link to="/user">
