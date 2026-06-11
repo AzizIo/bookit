@@ -44,6 +44,7 @@ class User(Base):
     total_hours_booked = Column(Float, default=0.0)
     favorite_listings = Column(String, default="")
     rating = Column(Float, default=0.0)
+    last_login = Column(String, default="")
 
 class Listing(Base):
     __tablename__ = "listings"
@@ -114,6 +115,7 @@ conn = sqlite3.connect("./booking.db")
 cursor = conn.cursor()
 for stmt in [
     "ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT 'renter'",
+    "ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT ''",
     "ALTER TABLE listings ADD COLUMN owner_id INTEGER DEFAULT 0",
     "ALTER TABLE listings ADD COLUMN status TEXT DEFAULT 'approved'",
     "ALTER TABLE listings ADD COLUMN booking_count INTEGER DEFAULT 0",
@@ -142,6 +144,21 @@ class UserOut(BaseModel):
     favorite_listings: str = ""
     rating: float = 0.0
     model_config = {"from_attributes": True}
+
+class UserAdminOut(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    user_role: str = "renter"
+    booking_history: str = ""
+    total_hours_booked: float = 0.0
+    favorite_listings: str = ""
+    rating: float = 0.0
+    last_login: str = ""
+    model_config = {"from_attributes": True}
+
+class RoleUpdate(BaseModel):
+    user_role: str
 
 class Token(BaseModel):
     access_token: str
@@ -257,6 +274,8 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     user = db.query(User).filter(User.email == form.username).first()
     if not user or not verify_password(form.password, user.password):
         raise HTTPException(status_code=401, detail="Wrong email or password")
+    user.last_login = str(datetime.utcnow())
+    db.commit()
     token = create_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
 
@@ -414,6 +433,37 @@ def get_reports(db: Session = Depends(get_db)):
 @app.delete("/reports/{report_id}", status_code=204)
 def delete_report(report_id: int, db: Session = Depends(get_db)):
     db.query(Report).filter(Report.id == report_id).delete()
+    db.commit()
+
+# --- Admin: User management ---
+@app.get("/admin/users", response_model=list[UserAdminOut])
+def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    return db.query(User).order_by(User.id.asc()).all()
+
+@app.put("/admin/users/{user_id}/role", response_model=UserAdminOut)
+def set_user_role(user_id: int, data: RoleUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    if data.user_role not in ("renter", "admin"):
+        raise HTTPException(status_code=400, detail="Invalid role. Use 'renter' or 'admin'")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.email == ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Cannot change admin role")
+    user.user_role = data.user_role
+    db.commit()
+    db.refresh(user)
+    return user
+
+@app.delete("/admin/users/{user_id}", status_code=204)
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.email == ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="Cannot delete admin")
+    db.query(Booking).filter(Booking.user_id == user_id).delete()
+    db.query(Review).filter(Review.user_id == user_id).delete()
+    db.delete(user)
     db.commit()
 @app.post("/bookings/{listing_id}")
 def create_booking(listing_id: int, db: Session = Depends(get_db),  current_user: User = Depends(get_current_user)):

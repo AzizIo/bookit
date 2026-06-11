@@ -173,29 +173,29 @@ export default function UserPage() {
 					transition={{ duration: 0.8 }}
 					className="border-b border-white/5"
 				>
-					<div className="max-w-4xl mx-auto px-6 py-16 md:px-12">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-6">
-								<div className="w-16 h-16 rounded-full bg-[#1a2035] border border-[#f5a623]/30 flex items-center justify-center text-[#f5a623] text-lg font-light tracking-widest">
+					<div className="max-w-4xl mx-auto px-4 py-10 md:px-12 md:py-16">
+						<div className="flex items-start justify-between gap-3">
+							<div className="flex items-center gap-4 min-w-0">
+								<div className="w-12 h-12 md:w-16 md:h-16 flex-shrink-0 rounded-full bg-[#1a2035] border border-[#f5a623]/30 flex items-center justify-center text-[#f5a623] text-base md:text-lg font-light tracking-widest">
 									{initials}
 								</div>
-													<div>
-														<h1 className="text-white text-2xl font-light tracking-wide uppercase">
-															{user?.full_name || 'Пользователь'}
-														</h1>
-									<p className="text-zinc-500 text-sm tracking-wider mt-1">{user?.email}</p>
+								<div className="min-w-0">
+									<h1 className="text-white text-base md:text-2xl font-light tracking-wide uppercase truncate">
+										{user?.full_name || 'Пользователь'}
+									</h1>
+									<p className="text-zinc-500 text-xs md:text-sm tracking-wider mt-1 truncate">{user?.email}</p>
 								</div>
 							</div>
 							<button
 								onClick={() => { logout(); navigate('/') }}
-								className="text-zinc-500 text-xs tracking-widest uppercase hover:text-white transition-colors duration-300"
+								className="flex-shrink-0 text-zinc-500 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-300 mt-1"
 							>
 								Выйти
 							</button>
 						</div>
 
 						{/* Stats row */}
-						<div className="flex gap-12 mt-12">
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
 							{[
 								{ value: bookingCount, label: 'БРОНИРОВАНИЙ' },
 								{ value: myListings.length, label: 'ОБЪЯВЛЕНИЙ' },
@@ -207,9 +207,10 @@ export default function UserPage() {
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+									className="bg-[#1a2035]/50 rounded-xl p-3 md:p-4 border border-white/5"
 								>
-									<div className="text-white text-2xl font-light">{stat.value}</div>
-									<div className="text-zinc-600 text-[10px] tracking-[0.2em] mt-1">{stat.label}</div>
+									<div className="text-white text-xl md:text-2xl font-light">{stat.value}</div>
+									<div className="text-zinc-600 text-[9px] tracking-[0.15em] mt-1">{stat.label}</div>
 								</motion.div>
 							))}
 						</div>
@@ -218,13 +219,13 @@ export default function UserPage() {
 
 				{/* Tabs */}
 				<div className="border-b border-white/5">
-					<div className="max-w-4xl mx-auto px-6 md:px-12">
-						<div className="flex gap-0">
+					<div className="max-w-4xl mx-auto px-4 md:px-12">
+						<div className="flex gap-0 overflow-x-auto scrollbar-hide">
 							{tabs.map((tab) => (
 								<button
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
-									className={`relative px-6 py-4 text-[11px] tracking-[0.2em] transition-colors duration-300 ${activeTab === tab.id
+									className={`relative flex-shrink-0 px-4 md:px-6 py-4 text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] transition-colors duration-300 whitespace-nowrap ${activeTab === tab.id
 										? 'text-white'
 										: 'text-zinc-600 hover:text-zinc-400'
 										}`}
@@ -244,9 +245,9 @@ export default function UserPage() {
 				</div>
 
 				{/* Content */}
-				<div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
+				<div className="max-w-4xl mx-auto px-4 md:px-12 py-8 md:py-12">
 					<AnimatePresence mode="wait">
-						<div className="max-w-4xl mx-auto px-6 md:px-12 py-12">
+						<div className="max-w-4xl mx-auto">
 							<AnimatePresence mode="wait">
 								{activeTab === 'bookings' && (
 									<motion.div
