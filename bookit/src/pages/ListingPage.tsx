@@ -21,6 +21,17 @@ interface Listing {
     reviews_count?: number
 }
 
+interface Review {
+	id: number
+	listing_id: number
+	user_id: number | null
+	rating: number
+	comment: string
+	user_name?: string
+	created_at?: string
+	date?: string
+}
+
 const amenityData: Record<string, { icon: string; label: string }> = {
 	WiFi: { icon: '📶', label: 'Высокоскоростной WiFi' },
 	Projector: { icon: '🖥️', label: 'Проектор 4K' },
@@ -30,12 +41,6 @@ const amenityData: Record<string, { icon: string; label: string }> = {
 	Kitchen: { icon: '🍳', label: 'Кухня' },
 	Pool: { icon: '🏊', label: 'Бассейн' },
 }
-
-const fakeReviews = [
-	{ name: 'Алексей Петров', date: 'Март 2026', rating: 5, text: 'Отличное пространство со всем необходимым. Локация идеальная, а хозяин очень отзывчивый.' },
-	{ name: 'Мария Иванова', date: 'Февраль 2026', rating: 5, text: 'Мы провели здесь встречу с клиентами и все были впечатлены. Обязательно забронирую снова!' },
-	{ name: 'Дмитрий Козлов', date: 'Январь 2026', rating: 4, text: 'Уютное и современное место. Идеально подходит для работы и переговоров.' },
-]
 
 const fadeUp = {
 	hidden: { opacity: 0, y: 30 },
@@ -52,7 +57,7 @@ export default function ListingPage() {
 	const { user } = useAuth()
 	const [listing, setListing] = useState<Listing | null>(null)
 	const [loading, setLoading] = useState(true)
-	const [reviews, setReviews] = useState<any[]>([])
+	const [reviews, setReviews] = useState<Review[]>([])
 	const [avgRating, setAvgRating] = useState<number | null>(null)
 	const [reviewsCount, setReviewsCount] = useState<number | null>(null)
 	const [selectedImage, setSelectedImage] = useState(0)
@@ -125,8 +130,9 @@ export default function ListingPage() {
 			if (!id) return
 			try {
 				const r = await API.get(`/reviews/${id}`)
-				setReviews(r.data || [])
-				setReviewsCount((r.data && Array.isArray(r.data)) ? r.data.length : reviewsCount)
+				const fetchedReviews = Array.isArray(r.data) ? r.data : []
+				setReviews(fetchedReviews)
+				setReviewsCount(fetchedReviews.length)
 			} catch (e) {
 				// fallback: ignore
 			}
@@ -416,7 +422,7 @@ export default function ListingPage() {
 								<span className="text-zinc-400 text-sm">На основе {(reviewsCount ?? listing.reviews_count ?? reviews.length) || 0} отзывов</span>
 							</div>
 							<div className="flex flex-col gap-4">
-								{(reviews.length ? reviews : fakeReviews).map((review: any, i: number) => {
+								{reviews.map((review: any, i: number) => {
 									const name = review.name || review.user_name || (review.user && review.user.full_name) || 'Пользователь'
 									const date = review.date || review.created_at || review.created || ''
 									const rating = review.rating ?? review.stars ?? 5

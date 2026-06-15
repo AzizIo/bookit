@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import ForeignKey, func
 from fastapi import Body
-
+import os
 SECRET_KEY = "asdasdjj"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
@@ -27,7 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-engine = create_engine("sqlite:///./booking.db")
+DB_PATH = os.getenv("DB_PATH", "./booking.db")
+engine = create_engine(
+    f"sqlite:///{DB_PATH}",
+    connect_args={"check_same_thread": False}
+)
 SessionLocal = sessionmaker(bind=engine)
 
 class Base(DeclarativeBase):

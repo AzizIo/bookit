@@ -97,7 +97,7 @@ export default function PayPage() {
     useEffect(() => {
         API.get('/listings/three').then((res) => setHotList(res.data))
         API.get("/listing/popular").then((res1) => setPopularListings(res1.data))
-        API.get(`/listings/${listing.id}/rating`).then((res) => setListingRating(res.data)).catch(() => {})
+        API.get(`/listings/${listing.id}/rating`).then((res) => setListingRating(res.data)).catch(() => { })
         const t = setTimeout(launch, 400)
         return () => clearTimeout(t)
     }, [listing.id, launch])
@@ -118,15 +118,15 @@ export default function PayPage() {
                         <div className="flex justify-between mt-4">
                             <div className="px-4 py-2">
                                 <div className="text-white font-semibold text-2xl">{listing.title}</div>
-                        <div className="flex items-center gap-2 mt-2 text-sm text-[#f5a623]">
-                            <span>★</span>
-                            <span>{listingRating ? listingRating.average_rating.toFixed(1) : '—'}</span>
-                            <span className="text-white/60">({listingRating ? listingRating.reviews_count : 0} отзывов)</span>
-                        </div>
-                        <div className="text-zinc-500 my-4">Бронирвоание #{bookingId}</div>
-                    </div>
+                                <div className="flex items-center gap-2 mt-2 text-sm text-[#f5a623]">
+                                    <span>★</span>
+                                    <span>{listingRating ? listingRating.average_rating.toFixed(1) : '—'}</span>
+                                    <span className="text-white/60">({listingRating ? listingRating.reviews_count : 0} отзывов)</span>
+                                </div>
+                                <div className="text-zinc-500 my-4">Бронирвоание #{bookingId}</div>
+                            </div>
                             <div className="px-4 py-2 text-right">
-                                <div className="text-[#f5a623] font-bold text-2xl">{total}</div>
+                                <div className="text-[#f5a623] font-bold text-2xl">{total}₽</div>
                                 <div className="text-zinc-500 my-4">Сумма</div>
                             </div>
                         </div>
