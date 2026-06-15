@@ -17,8 +17,8 @@ interface Listing {
 	description: string
 	image_url: string
 	amenities: string
-    average_rating?: number
-    reviews_count?: number
+	average_rating?: number
+	reviews_count?: number
 }
 
 interface Review {
