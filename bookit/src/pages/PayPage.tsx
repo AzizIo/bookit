@@ -87,7 +87,7 @@ function useConfetti() {
 export default function PayPage() {
     const { state } = useLocation()
     const navigate = useNavigate()
-    const { listing, guests, hours, total, date } = state
+    const { listing, guests, hours, total, date, nights, checkIn, checkOut } = state
     const [hotList, setHotList] = useState([])
     const [popularListings, setPopularListings] = useState([])
     const [listingRating, setListingRating] = useState<{ average_rating: number; reviews_count: number } | null>(null)
@@ -143,15 +143,15 @@ export default function PayPage() {
                                 <div className='flex gap-8'>
                                     <div><img className='w-14 h-14 object-contain bg-[#f5a623]/5 rounded-2xl' src={kaligoscope} alt="" /></div>
                                     <div>
-                                        <p className='text-zinc-600'>Дата</p>
-                                        <div className='text-white font-semibold'>{date}</div>
+                                        <p className='text-zinc-600'>Заезд</p>
+                                        <div className='text-white font-semibold'>{checkIn}</div>
                                     </div>
                                 </div>
                                 <div className='flex gap-8'>
                                     <div><img className='w-14 bg-[#f5a623]/5 rounded-2xl' src={time} alt="" /></div>
                                     <div>
-                                        <p className='text-zinc-600'>Время</p>
-                                        <div className='text-white font-semibold'>{hours} часов</div>
+                                        <p className='text-zinc-600'>Выезд</p>
+                                        <div className='text-white font-semibold'>{checkOut}</div>
                                     </div>
                                 </div>
                                 <div className='flex gap-8 mb-4'>

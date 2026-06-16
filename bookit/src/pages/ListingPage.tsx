@@ -55,6 +55,8 @@ export default function ListingPage() {
 	const { id } = useParams()
 	const navigate = useNavigate()
 	const { user } = useAuth()
+	const [checkIn, setCheckIn] = useState('');
+	const [checkOut, setCheckOut] = useState('');
 	const [listing, setListing] = useState<Listing | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [reviews, setReviews] = useState<Review[]>([])
@@ -89,7 +91,10 @@ export default function ListingPage() {
 		setIsFavorite(data.added)
 	}
 	async function bookingRequest(listingId) {
+		const nights = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
+		const nightLabel = nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей';
 		try {
+
 			await API.post(`/bookings/${listingId}`)
 			navigate('/pay', {
 				state: {
@@ -97,7 +102,11 @@ export default function ListingPage() {
 					guests,
 					date,
 					hours: listingtime,
-					total: listing.price_per_night * listingtime,
+					total: listing.price_per_night * nights,
+					checkIn,
+					checkOut
+
+
 				}
 			})
 		} catch (error) {
@@ -456,6 +465,7 @@ export default function ListingPage() {
 					</div>
 
 					{/* Right sidebar — Booking card */}
+					{/* Right sidebar — Booking card */}
 					<motion.div
 						initial={{ opacity: 0, x: 30 }}
 						animate={{ opacity: 1, x: 0 }}
@@ -464,48 +474,49 @@ export default function ListingPage() {
 					>
 						<div className="bg-[#1a2035] border border-white/10 rounded-2xl p-6 sticky top-8">
 							<div className="mb-6">
-								{/* пока так  */}
 								<span className="text-[#f5a623] text-3xl font-bold">₽{listing.price_per_night}</span>
-								<span className="text-zinc-400 text-sm"> /час</span>
+								<span className="text-zinc-400 text-sm"> / ночь</span>
 							</div>
 
-							{/* Date */}
-							<div className="mb-4">
-								<label className="text-white text-sm font-semibold block mb-2">Дата</label>
-								<div className="relative">
-									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">📅</span>
-									<input
-										type="date"
-										onChange={(e) => setDate(e.target.value)}
-										className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition"
-									/>
+							{/* Check-in / Check-out */}
+							<div className="mb-4 grid grid-cols-2 gap-3">
+								<div>
+									<label className="text-white text-sm font-semibold block mb-2">Заезд</label>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">📅</span>
+										<input
+											type="date"
+											value={checkIn}
+											min={new Date().toISOString().split('T')[0]}
+											onChange={(e) => {
+												setCheckIn(e.target.value);
+												if (checkOut && e.target.value >= checkOut) setCheckOut('');
+											}}
+											className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-10 pr-2 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition"
+										/>
+									</div>
 								</div>
-							</div>
-
-							{/* Time */}
-							<div className="mb-4">
-
-								<label className="text-white text-sm font-semibold block mb-2">Время</label>
-								<select onChange={(e) => { const val = e.target.value; setListingTime(val); console.log(val) }} className="w-full bg-[#2a3147] border border-gray-600 rounded-xl px-4 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition">
-									<option value="">Выберите время</option>
-									{/* Обновляем время, теперь человек выбирает часы аренды  */}
-									<option value="">Выберите время</option>
-									<option value="1">09:00 – 10:00</option>
-									<option value="2">09:00 – 11:00</option>
-									<option value="3">09:00 – 12:00</option>
-									<option value="4">09:00 – 13:00</option>
-									<option value="5">09:00 – 14:00</option>
-									<option value="6">09:00 – 15:00</option>
-									<option value="7">09:00 – 16:00</option>
-									<option value="8">09:00 – 17:00</option>
-									<option value="9">09:00 – 18:00</option>
-									{/* Пока сделанно с фиксированным значением в будущем может сделаем два селектора начало и конец */}
-								</select>
+								<div>
+									<label className="text-white text-sm font-semibold block mb-2">Выезд</label>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">📅</span>
+										<input
+											type="date"
+											value={checkOut}
+											min={checkIn
+												? new Date(new Date(checkIn).getTime() + 86400000).toISOString().split('T')[0]
+												: new Date().toISOString().split('T')[0]
+											}
+											onChange={(e) => setCheckOut(e.target.value)}
+											disabled={!checkIn}
+											className="w-full bg-[#2a3147] border border-gray-600 rounded-xl pl-10 pr-2 py-3 text-[#ced0d3] text-sm focus:border-[#f5a623] focus:outline-none transition disabled:opacity-40 disabled:cursor-not-allowed"
+										/>
+									</div>
+								</div>
 							</div>
 
 							{/* Guests */}
 							<div className="mb-6">
-
 								<motion.button
 									whileHover={{ scale: 1.02 }}
 									whileTap={{ scale: 0.97 }}
@@ -524,6 +535,7 @@ export default function ListingPage() {
 									</svg>
 									{isFavorite ? 'В избранном' : 'В избранное'}
 								</motion.button>
+
 								<label className="text-white text-sm font-semibold block mb-2">Гости</label>
 								<div className="flex items-center gap-4">
 									<motion.button
@@ -545,31 +557,24 @@ export default function ListingPage() {
 								<p className="text-zinc-500 text-xs mt-1">Максимум: {listing.max_guests} чел.</p>
 							</div>
 
-							{/* total summ */}
-							<div className='mb-4 bg-[#313648] border-white/4 border rounded-xl py-4 px-4' >
-
-								{listingtime != 0 ?
-
-									<div className='' >
-										<div className='text-zinc-500 text-sm' >{listing.price_per_night} x {listingtime} часов</div>
-										<hr className='bg-zinc-400 text-zinc-600 my-4' />
-										<div className='flex items-center justify-between  '>
-											<div className='font-bold text-white' >
-												Total
+							{/* Total */}
+							<div className="mb-4 bg-[#313648] border border-white/4 rounded-xl py-4 px-4">
+								{checkIn && checkOut ? (() => {
+									const nights = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
+									const nightLabel = nights === 1 ? 'ночь' : nights < 5 ? 'ночи' : 'ночей';
+									return (
+										<div>
+											<div className="text-zinc-500 text-sm">₽{listing.price_per_night} × {nights} {nightLabel}</div>
+											<hr className="border-zinc-600 my-4" />
+											<div className="flex items-center justify-between">
+												<div className="font-bold text-white">Итого</div>
+												<div className="text-[#f5a623] text-2xl font-bold">{listing.price_per_night * nights}₽</div>
 											</div>
-											<div className='text-[#f5a623] text-2xl font-bold' >{listing.price_per_night * listingtime}₽</div>
 										</div>
-									</div> :
-
-
-									<div>
-										<div className='text-zinc-500 text-sm'>Выберите время чтобы посчитать сумму</div>
-									</div>
-								}
-
-
-
-
+									);
+								})() : (
+									<div className="text-zinc-500 text-sm">Выберите даты, чтобы увидеть сумму</div>
+								)}
 							</div>
 
 							{/* Confirm button */}
@@ -579,10 +584,7 @@ export default function ListingPage() {
 								onClick={() => bookingRequest(listing.id)}
 								className="w-full bg-[#f5a623] text-[#0f1629] font-bold py-3.5 rounded-xl hover:bg-[#e09610] transition text-lg"
 							>
-
-
 								Подтвердить бронирование
-
 							</motion.button>
 
 							{/* Host info */}

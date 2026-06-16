@@ -619,3 +619,26 @@ def get_reviews(listing_id: int, db: Session = Depends(get_db)):
             "user_name": user.full_name if user else None,
         })
     return result
+@app.get("/listings/{listing_id}/owner")
+def get_listing_owner(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    owner = db.query(User).filter(User.id == listing.owner_id).first()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    
+    # Считаем сколько листингов у хозяина
+    listings_count = db.query(Listing).filter(Listing.owner_id == owner.id).count()
+    
+    # Год регистрации из last_login или дефолт
+    member_since = owner.last_login[:4] if owner.last_login else "2024"
+
+    return {
+        "id": owner.id,
+        "full_name": owner.full_name,
+        "rating": owner.rating,
+        "listings_count": listings_count,
+        
+    }
