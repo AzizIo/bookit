@@ -115,7 +115,7 @@ Base.metadata.create_all(engine)
 
 # миграция
 import sqlite3
-conn = sqlite3.connect("./booking.db")
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 for stmt in [
     "ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT 'renter'",
