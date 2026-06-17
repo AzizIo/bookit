@@ -3,17 +3,23 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API from '../API/api'
 import checkmark from '../assets/checkmark.png'
+import checkmarkAvif from '../assets/checkmark.avif'
+import checkmarkWebp from '../assets/checkmark.webp'
 import lupa from '../assets/lupa.png'
+import lupaAvif from '../assets/lupa.avif'
+import lupaWebp from '../assets/lupa.webp'
 import time from '../assets/time.png'
+import timeAvif from '../assets/time.avif'
+import timeWebp from '../assets/time.webp'
 import AnimatedCounter from '../components/AnimatedCounter'
 import Bug from '../components/bug'
 import CursorGradient from '../components/CursorGradient'
 import GlowCard from '../components/GlowCard'
 import GlowText from '../components/GlowText'
 import MagneticButton from '../components/MagneticButton'
-import ShimmerButton from '../components/ShimmerButton'
 import TextReveal from '../components/TextReveal'
 import SearchBar from '../components/search'
+import Picture from '../components/Picture'
 
 const featuredReview = {
 	name: 'Sarah Chen',
@@ -37,7 +43,6 @@ export default function MainPage() {
 		average_rating?: number
 		reviews_count?: number
 	}
-	const [searchTerm, setSearchTerm] = useState('')
 	const [AllListings, setAllListings] = useState<Listing[]>([])
 	const [featuredReviewData, setFeaturedReviewData] = useState<{ name: string; rating: number; text: string; role: string } | null>(null)
 	useEffect(() => {
@@ -142,7 +147,7 @@ export default function MainPage() {
 								>
 									{/* Картинка */}
 									<div className="w-full h-70 overflow-hidden">
-										<img src={l.image_url} alt="space" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+										<img loading="lazy" src={l.image_url} alt="space" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
 									</div>
 									{/* Контент */}
 									<div className="p-4 py-4 flex flex-col gap-2">
@@ -218,7 +223,7 @@ export default function MainPage() {
 							transition={{ duration: 0.4, delay: 0 }}
 							className="step flex flex-col items-center gap-4 mt-10"
 						>
-							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={lupa} alt="Search" /></div>
+							<div className="icon"><Picture avif={lupaAvif} webp={lupaWebp} fallback={lupa} className='w-18 bg-amber-300/5 rounded-2xl' alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>1. Поиск</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Просматривайте сотни проверенных пространств, подобранных под ваши нужды и местоположение</p>
 						</motion.div>
@@ -229,7 +234,7 @@ export default function MainPage() {
 							transition={{ duration: 0.4, delay: 0.15 }}
 							className="step flex flex-col items-center gap-4 mt-10"
 						>
-							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={checkmark} alt="Search" /></div>
+							<div className="icon"><Picture avif={checkmarkAvif} webp={checkmarkWebp} fallback={checkmark} className='w-18 bg-amber-300/5 rounded-2xl' alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>2. Выбор</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Сравнивайте удобства, цены и доступность, чтобы найти идеальное рабочее пространство</p>
 						</motion.div>
@@ -240,7 +245,7 @@ export default function MainPage() {
 							transition={{ duration: 0.4, delay: 0.3 }}
 							className="step flex flex-col items-center gap-4 mt-10"
 						>
-							<div className="icon"><img className='w-18 bg-amber-300/5 rounded-2xl' src={time} alt="Search" /></div>
+							<div className="icon"><Picture avif={timeAvif} webp={timeWebp} fallback={time} className='w-18 bg-amber-300/5 rounded-2xl' alt="Search" /></div>
 							<h2 className='text-xl text-white font-semibold'>3. Бронирование</h2>
 							<p className='flex text-center mx-4 text-zinc-400'>Мгновенное подтверждение и удобная регистрация. Начните работать сразу</p>
 						</motion.div>

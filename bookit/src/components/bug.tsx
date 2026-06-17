@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import bug from "../assets/bug.png";
+import bug from "../assets/bug.avif";
 import API from "../API/api";
 
 export default function Bug() {

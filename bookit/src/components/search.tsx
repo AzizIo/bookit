@@ -1,13 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import ShimmerButton from '../components/ShimmerButton'
-
-
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import ShimmerButton from './ShimmerButton'
+
 export default function SearchBar() {
-
 	const [searchTerm, setSearchTerm] = useState('')
-
 
 	return (
 		<motion.form
@@ -21,13 +17,13 @@ export default function SearchBar() {
 					<div className="search flex w-full md:w-auto">
 						<input type="text" onChange={e => setSearchTerm(e.target.value)}
 							value={searchTerm}
-							placeholder='Местоположение' required className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
+							placeholder='Местоположение' aria-label='Местоположение' required className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
 					</div>
 					<div className="date flex w-full md:w-auto">
-						<input type="date" className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
+						<input type="date" aria-label='Дата' className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' />
 					</div>
 					<div className="sel flex w-full md:w-auto">
-						<select className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' name="" id="">
+						<select aria-label='Категория' className='rounded-xl px-4 py-3 border border-gray-600 font-semibold text-[#ced0d3] bg-[#2a3147] w-full md:w-60 h-16' name="category" id="category">
 							<option value="">Категории</option>
 							<option value="1">1</option>
 							<option value="2">2</option>
